@@ -3,9 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Trading Journal - Professional Edition</title>
+    <title>Trade Terminal | Professional Journal</title>
+    <!-- Favicon: Candlestick + Notebook Symbol -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%234f46e5%22/><path d=%22M30 40v20M30 45h6v10h-6zM50 30v40M50 35h6v30h-6zM70 50v20M70 55h6v10h-6z%22 stroke=%22white%22 stroke-width=%224%22 fill=%22none%22/><path d=%22M25 20h50a5 5 0 0 1 5 5v50a5 5 0 0 1-5 5H25a5 5 0 0 1-5-5V25a5 5 0 0 1 5-5z%22 fill=%22none%22 stroke=%22rgba(255,255,255,0.3)%22 stroke-width=%222%22/></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
+        
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: #f8fafc;
@@ -84,9 +88,9 @@
 
         input:focus, select:focus {
             background: #ffffff;
-            border-color: #94a3b8;
+            border-color: #4f46e5;
             border-radius: 4px;
-            box-shadow: 0 0 0 2px rgba(226, 232, 240, 0.5);
+            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
         }
 
         .details-row {
@@ -117,13 +121,6 @@
             text-transform: uppercase;
             color: #94a3b8;
             margin-bottom: 6px;
-        }
-
-        .detail-item input {
-            border: 1px solid #e2e8f0;
-            border-radius: 6px;
-            padding: 8px 10px;
-            background: #fcfcfc;
         }
 
         .win-text { color: #10b981; }
@@ -159,22 +156,26 @@
         }
 
         .capital-input {
-            border-bottom: 1px solid #e2e8f0;
-            font-weight: 700;
-            width: 100px;
-            text-align: right;
+            border-bottom: 2px solid #e2e8f0;
+            font-weight: 800;
+            width: 120px;
+            text-align: left;
             color: #0f172a;
+        }
+        .capital-input:focus {
+            border-color: #4f46e5;
         }
 
         .stat-card {
             background: white;
             padding: 12px 16px;
-            border-radius: 12px;
+            border-radius: 16px;
             border: 1px solid #e2e8f0;
-            min-width: 110px;
+            min-width: 125px;
             display: flex;
             flex-direction: column;
             justify-content: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
         }
 
         .stat-label {
@@ -182,112 +183,129 @@
             font-weight: 700;
             color: #94a3b8;
             text-transform: uppercase;
-            letter-spacing: 0.025em;
+            letter-spacing: 0.05em;
             margin-bottom: 2px;
         }
 
         .stat-value {
-            font-size: 1.125rem;
-            font-weight: 800;
+            font-size: 1.25rem;
+            font-weight: 900;
             color: #1e293b;
-            line-height: 1.2;
+            line-height: 1.1;
         }
 
         .win-rate-bar {
-            height: 4px;
+            height: 5px;
             width: 100%;
             background: #f1f5f9;
-            border-radius: 2px;
-            margin-top: 6px;
+            border-radius: 10px;
+            margin-top: 8px;
             overflow: hidden;
         }
 
         .win-rate-fill {
             height: 100%;
-            background: linear-gradient(to right, #10b981, #34d399);
+            background: linear-gradient(90deg, #6366f1, #10b981);
             width: 0%;
-            transition: width 0.5s ease-out;
+            transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        
+        .premium-logo {
+            background: #4f46e5;
+            padding: 8px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);
         }
     </style>
 </head>
 <body class="p-4 md:p-8">
     <div id="modalContainer"></div>
 
-    <div class="max-w-[1400px] mx-auto">
-        <!-- Header Section -->
-        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-8">
-            <div>
-                <div class="flex items-center gap-3 mb-1">
-                    <h1 class="text-2xl font-black text-slate-900 tracking-tight">Trade Terminal</h1>
-                    <div id="syncStatus" class="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest px-2 py-1 bg-slate-100 rounded-md text-slate-500">
-                        <span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
-                        Offline
-                    </div>
+    <div class="max-w-[1440px] mx-auto">
+        <!-- Premium Header -->
+        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-10">
+            <div class="flex items-center gap-4">
+                <div class="premium-logo">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 3v18h18"/><path d="M18 17l-6-6-4 4-5-5"/>
+                    </svg>
                 </div>
-                <div class="flex items-center gap-6">
-                    <div class="flex flex-col">
-                        <span class="text-[10px] uppercase font-bold text-slate-400">Initial Capital</span>
-                        <input type="number" id="initialCapital" class="capital-input text-lg" placeholder="0.00" onchange="updateCapital(this.value)">
+                <div>
+                    <div class="flex items-center gap-2 mb-0.5">
+                        <h1 class="text-2xl font-black text-slate-900 tracking-tight">Trade Terminal</h1>
+                        <span id="syncStatus" class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[9px] font-black uppercase tracking-widest">
+                            Sync Off
+                        </span>
                     </div>
-                    <div class="h-8 w-px bg-slate-200"></div>
-                    <div class="flex flex-col">
-                        <span class="text-[10px] uppercase font-bold text-slate-400">Live Balance</span>
-                        <span id="currentBalance" class="text-lg font-black text-slate-900">0.00</span>
+                    <div class="flex items-center gap-4">
+                        <div class="flex items-baseline gap-2">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase">Capital:</span>
+                            <input type="number" id="initialCapital" class="capital-input text-sm" placeholder="0.00" onchange="updateCapital(this.value)">
+                        </div>
+                        <div class="flex items-baseline gap-2">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase">Equity:</span>
+                            <span id="currentBalance" class="text-sm font-black text-indigo-600">0.00</span>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Stats Dashboard -->
-            <div class="grid grid-cols-2 sm:flex items-stretch gap-3 w-full lg:w-auto">
+            <!-- Dashboard -->
+            <div class="grid grid-cols-2 sm:flex items-stretch gap-4 w-full lg:w-auto">
                 <div class="stat-card">
-                    <span class="stat-label">Total Trades</span>
+                    <span class="stat-label">Volume</span>
                     <span id="statTotal" class="stat-value">0</span>
                 </div>
                 <div class="stat-card">
-                    <span class="stat-label">Win / Loss</span>
-                    <span id="statWinLoss" class="stat-value text-slate-600">0 : 0</span>
+                    <span class="stat-label">Ratio W:L</span>
+                    <span id="statWinLoss" class="stat-value text-slate-500">0:0</span>
                 </div>
                 <div class="stat-card">
-                    <span class="stat-label">Win Rate</span>
-                    <span id="statWinRate" class="stat-value text-emerald-600">0%</span>
+                    <span class="stat-label">Accuracy</span>
+                    <span id="statWinRate" class="stat-value text-indigo-600">0%</span>
                     <div class="win-rate-bar"><div id="winRateFill" class="win-rate-fill"></div></div>
                 </div>
                 <div class="stat-card">
-                    <span class="stat-label">Duration</span>
-                    <span id="statDuration" class="stat-value">0 <span class="text-[10px] font-normal text-slate-400">days</span></span>
+                    <span class="stat-label">Tenure</span>
+                    <span id="statDuration" class="stat-value">0 <span class="text-[10px] font-medium text-slate-400">days</span></span>
                 </div>
             </div>
 
-            <!-- Global Actions -->
-            <div class="flex flex-wrap gap-2 w-full lg:w-auto">
-                <div class="flex bg-white rounded-lg p-1 border border-slate-200 shadow-sm">
-                    <button onclick="createNewFile()" class="px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 rounded-md transition">New</button>
-                    <button onclick="openExistingFile()" class="px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 rounded-md transition">Open</button>
-                    <button id="btnSyncOut" onclick="syncOut()" class="hidden px-3 py-2 text-xs font-bold text-red-600 hover:bg-red-50 rounded-md transition">Disconnect</button>
+            <!-- Controls -->
+            <div class="flex items-center gap-3 w-full lg:w-auto">
+                <div class="flex bg-white rounded-xl p-1 border border-slate-200 shadow-sm overflow-hidden">
+                    <button onclick="createNewFile()" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 transition">Save File</button>
+                    <button onclick="openExistingFile()" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 border-l border-slate-100 transition">Import</button>
+                    <button id="btnSyncOut" onclick="syncOut()" class="hidden px-4 py-2 text-xs font-bold text-red-500 hover:bg-red-50 border-l border-slate-100 transition">Reset</button>
                 </div>
-                <button onclick="addRow()" class="bg-indigo-600 text-white px-6 py-2.5 rounded-lg text-sm font-bold hover:bg-indigo-700 transition shadow-md shadow-indigo-100">+ New Entry</button>
-                <button onclick="showModal('clearAll')" class="text-slate-400 hover:text-red-500 transition px-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+                <button onclick="addRow()" class="flex-1 lg:flex-none bg-slate-900 text-white px-6 py-3 rounded-xl text-sm font-black hover:bg-black transition shadow-lg shadow-slate-200">
+                    + Log Trade
+                </button>
+                <button onclick="showModal('clearAll')" class="p-3 text-slate-400 hover:text-red-500 transition">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 6h18m-2 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
                 </button>
             </div>
         </div>
 
-        <!-- Table Section -->
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <!-- Main Journal Table -->
+        <div class="bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-200 overflow-hidden">
             <div class="table-wrap">
                 <table id="journalTable">
                     <thead>
                         <tr>
-                            <th class="w-12"></th>
-                            <th class="text-left w-32">Date</th>
-                            <th class="text-left w-28">Asset</th>
-                            <th class="text-left w-20">Type</th>
-                            <th class="text-left w-24">Result</th>
-                            <th class="text-right w-24">R Mult.</th>
-                            <th class="text-right w-24">Fee</th>
-                            <th class="text-right w-28 font-bold">Net P/L</th>
+                            <th class="w-10"></th>
+                            <th class="text-left w-36">Timestamp</th>
+                            <th class="text-left w-32">Ticker</th>
+                            <th class="text-left w-24">Position</th>
+                            <th class="text-left w-28">Outcome</th>
+                            <th class="text-right w-24">Reward Ratio</th>
+                            <th class="text-right w-24">Broker Fee</th>
+                            <th class="text-right w-32 font-bold">Net P/L</th>
                             <th class="text-center w-28">Analysis</th>
-                            <th class="text-center w-36">Actions</th>
+                            <th class="text-center w-36">Management</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody"></tbody>
@@ -297,8 +315,8 @@
     </div>
 
     <script>
-        const STORAGE_KEY = 'trading_journal_data_v2';
-        const CAPITAL_KEY = 'trading_journal_capital_v2';
+        const STORAGE_KEY = 'trade_terminal_v3_data';
+        const CAPITAL_KEY = 'trade_terminal_v3_cap';
 
         let trades = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [
             { id: Date.now(), date: new Date().toISOString().split('T')[0], asset: '', type: 'Long', setup: '', chart: '', entry: '', sl: '', tp: '', size: '', exit: '', result: 'BE', r_multiple: '', pnl: '', commission: '' }
@@ -316,11 +334,11 @@
         async function createNewFile() {
             try {
                 const handle = await window.showSaveFilePicker({
-                    suggestedName: `journal-${new Date().toISOString().split('T')[0]}.json`,
-                    types: [{ description: 'JSON', accept: { 'application/json': ['.json'] } }],
+                    suggestedName: `terminal-logs-${new Date().toISOString().split('T')[0]}.json`,
+                    types: [{ description: 'Journal File', accept: { 'application/json': ['.json'] } }],
                 });
                 fileHandle = handle;
-                updateSyncUI(true);
+                updateSyncStatusUI(true);
                 await writeToLocalFile();
             } catch (err) {}
         }
@@ -335,7 +353,7 @@
                     trades = data.trades;
                     initialCapital = data.initialCapital || 0;
                     fileHandle = handle;
-                    updateSyncUI(true);
+                    updateSyncStatusUI(true);
                     render();
                     save();
                 }
@@ -348,7 +366,7 @@
             localStorage.removeItem(CAPITAL_KEY);
             trades = [{ id: Date.now(), date: new Date().toISOString().split('T')[0], asset: '', type: 'Long', setup: '', chart: '', entry: '', sl: '', tp: '', size: '', exit: '', result: 'BE', r_multiple: '', pnl: '', commission: '' }];
             initialCapital = 0;
-            updateSyncUI(false);
+            updateSyncStatusUI(false);
             render();
         }
 
@@ -356,15 +374,16 @@
             if (!fileHandle) return;
             try {
                 const writable = await fileHandle.createWritable();
-                await writable.write(JSON.stringify({ trades, initialCapital, lastSaved: new Date().toISOString() }, null, 2));
+                await writable.write(JSON.stringify({ trades, initialCapital, lastUpdated: new Date().toISOString() }, null, 2));
                 await writable.close();
-            } catch (err) { fileHandle = null; updateSyncUI(false); }
+            } catch (err) { fileHandle = null; updateSyncStatusUI(false); }
         }
 
-        function updateSyncUI(active) {
+        function updateSyncStatusUI(active) {
             const status = document.getElementById('syncStatus');
             const syncBtn = document.getElementById('btnSyncOut');
-            status.innerHTML = active ? `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Connected` : `<span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span> Offline`;
+            status.innerText = active ? "Live Sync" : "Sync Off";
+            status.className = active ? "px-2 py-0.5 rounded bg-indigo-100 text-indigo-700 text-[9px] font-black uppercase tracking-widest" : "px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[9px] font-black uppercase tracking-widest";
             active ? syncBtn.classList.remove('hidden') : syncBtn.classList.add('hidden');
         }
 
@@ -388,7 +407,7 @@
             const btn = document.getElementById(`btn-${id}`);
             const isActive = el.classList.toggle('active');
             btn.innerText = isActive ? 'Close' : 'Details';
-            btn.className = isActive ? 'btn-action bg-slate-800 text-white' : 'btn-action btn-details';
+            btn.className = isActive ? 'btn-action bg-slate-900 text-white' : 'btn-action btn-details';
         }
 
         function addRow() {
@@ -401,25 +420,25 @@
         function showModal(type, id = null) {
             const container = document.getElementById('modalContainer');
             tradeIdPendingDelete = id;
-            let title = "Confirm Delete", message = "Remove this trade entry permanently?", confirmAction = "confirmDelete()", verification = "";
+            let title = "Delete Record", message = "Are you sure you want to remove this trade?", confirmAction = "confirmDelete()", extra = "";
             
             if (type === 'clearAll') {
-                const cur = document.getElementById('currentBalance').innerText;
-                title = "Security Check";
-                message = `Enter current balance <strong>(${cur})</strong> to wipe all data.`;
-                confirmAction = `validateAndClearAll('${cur}')`;
-                verification = `<input type="text" id="clearVerifyInput" class="w-full mt-4 p-3 bg-slate-50 border border-slate-200 rounded-lg text-center font-bold">`;
+                const bal = document.getElementById('currentBalance').innerText;
+                title = "Wipe Database";
+                message = `Please enter <strong>${bal}</strong> to confirm full data deletion.`;
+                confirmAction = `validateWipe('${bal}')`;
+                extra = `<input type="text" id="wipeInput" class="w-full mt-4 p-3 border-2 border-slate-100 rounded-xl text-center font-black">`;
             }
 
             container.innerHTML = `
-                <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
-                    <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl scale-in">
-                        <h2 class="text-lg font-bold text-slate-900 mb-1">${title}</h2>
-                        <p class="text-slate-500 text-sm mb-4">${message}</p>
-                        ${verification}
-                        <div class="flex gap-2 mt-6">
-                            <button onclick="closeModal()" class="flex-1 py-2.5 text-sm font-bold text-slate-500 hover:bg-slate-50 rounded-xl transition">Cancel</button>
-                            <button onclick="${confirmAction}" class="flex-1 py-2.5 text-sm font-bold bg-red-500 text-white hover:bg-red-600 rounded-xl shadow-lg shadow-red-100 transition">Confirm</button>
+                <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[100] p-4">
+                    <div class="bg-white rounded-3xl p-8 w-full max-w-sm shadow-2xl animate-in fade-in zoom-in duration-200">
+                        <h2 class="text-xl font-black text-slate-900 mb-2">${title}</h2>
+                        <p class="text-slate-500 text-sm leading-relaxed">${message}</p>
+                        ${extra}
+                        <div class="flex gap-3 mt-8">
+                            <button onclick="closeModal()" class="flex-1 py-3 text-sm font-bold text-slate-500 hover:bg-slate-50 rounded-2xl transition">Cancel</button>
+                            <button onclick="${confirmAction}" class="flex-1 py-3 text-sm font-black bg-red-500 text-white hover:bg-red-600 rounded-2xl shadow-lg shadow-red-200 transition">Confirm</button>
                         </div>
                     </div>
                 </div>
@@ -431,37 +450,37 @@
             if (tradeIdPendingDelete) { trades = trades.filter(t => t.id !== tradeIdPendingDelete); trades.length === 0 ? addRow() : render(); save(); }
             closeModal();
         }
-        function validateAndClearAll(req) {
-            if (document.getElementById('clearVerifyInput').value.replace(/,/g, '') === req.replace(/,/g, '')) {
+        function validateWipe(req) {
+            if (document.getElementById('wipeInput').value.replace(/,/g, '') === req.replace(/,/g, '')) {
                 trades = []; addRow(); save(); closeModal();
             }
         }
 
         function calculateTotalBalance() {
-            let totalNetPL = 0, wins = 0, losses = 0, dates = [];
+            let net = 0, wins = 0, losses = 0, dates = [];
             trades.forEach(t => { 
-                const pnl = parseFloat(t.pnl) || 0, comm = parseFloat(t.commission) || 0;
-                totalNetPL += (pnl - comm); 
+                const p = parseFloat(t.pnl) || 0, c = parseFloat(t.commission) || 0;
+                net += (p - c); 
                 if (t.result === 'Win') wins++; else if (t.result === 'Loss') losses++;
                 if (t.date) dates.push(new Date(t.date));
             });
 
-            const currentBalance = initialCapital + totalNetPL;
+            const current = initialCapital + net;
             const display = document.getElementById('currentBalance');
-            display.innerText = currentBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            display.className = `text-lg font-black ${currentBalance >= initialCapital ? 'text-emerald-600' : 'text-red-500'}`;
+            display.innerText = current.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            display.className = `text-sm font-black ${current >= initialCapital ? 'text-emerald-600' : 'text-red-500'}`;
 
             document.getElementById('statTotal').innerText = trades.length;
-            document.getElementById('statWinLoss').innerText = `${wins} : ${losses}`;
-            const wr = trades.length > 0 ? ((wins / trades.length) * 100).toFixed(0) : 0;
-            document.getElementById('statWinRate').innerText = `${wr}%`;
-            document.getElementById('winRateFill').style.width = `${wr}%`;
+            document.getElementById('statWinLoss').innerText = `${wins}:${losses}`;
+            const rate = trades.length > 0 ? ((wins / trades.length) * 100).toFixed(0) : 0;
+            document.getElementById('statWinRate').innerText = `${rate}%`;
+            document.getElementById('winRateFill').style.width = `${rate}%`;
 
             if (dates.length > 1) {
-                const diff = Math.ceil(Math.abs(new Date(Math.max(...dates)) - new Date(Math.min(...dates))) / (1000 * 60 * 60 * 24));
-                document.getElementById('statDuration').innerHTML = `${diff} <span class="text-[10px] font-normal text-slate-400">days</span>`;
+                const days = Math.ceil(Math.abs(new Date(Math.max(...dates)) - new Date(Math.min(...dates))) / (1000 * 60 * 60 * 24));
+                document.getElementById('statDuration').innerHTML = `${days} <span class="text-[10px] font-medium text-slate-400">days</span>`;
             } else {
-                document.getElementById('statDuration').innerHTML = `0 <span class="text-[10px] font-normal text-slate-400">days</span>`;
+                document.getElementById('statDuration').innerHTML = `0 <span class="text-[10px] font-medium text-slate-400">days</span>`;
             }
         }
 
@@ -471,26 +490,28 @@
             tbody.innerHTML = '';
 
             trades.forEach(trade => {
-                const net = (parseFloat(trade.pnl) || 0) - (parseFloat(trade.commission) || 0);
-                const pnlClass = net > 0 ? 'text-emerald-600 font-bold' : (net < 0 ? 'text-red-500 font-bold' : 'text-slate-300');
+                const netVal = (parseFloat(trade.pnl) || 0) - (parseFloat(trade.commission) || 0);
+                const pnlClass = netVal > 0 ? 'text-emerald-600 font-bold' : (netVal < 0 ? 'text-red-500 font-bold' : 'text-slate-300');
                 const resultClass = trade.result === 'Win' ? 'win-text font-bold' : (trade.result === 'Loss' ? 'loss-text font-bold' : 'be-text font-bold');
 
                 const row = document.createElement('tr');
+                row.className = "group transition-colors";
                 row.innerHTML = `
-                    <td class="text-center"><button onclick="showModal('deleteSingle', ${trade.id})" class="delete-btn opacity-0 group-hover:opacity-100 transition">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                    </button></td>
-                    <td><input type="date" value="${trade.date}" class="font-medium" onchange="updateTrade(${trade.id}, 'date', this.value)"></td>
-                    <td><input type="text" placeholder="Ticker" value="${trade.asset}" class="font-bold uppercase tracking-wider" onchange="updateTrade(${trade.id}, 'asset', this.value)"></td>
-                    <td><select onchange="updateTrade(${trade.id}, 'type', this.value)"><option value="Long" ${trade.type==='Long'?'selected':''}>Long</option><option value="Short" ${trade.type==='Short'?'selected':''}>Short</option></select></td>
+                    <td class="text-center">
+                        <button onclick="showModal('deleteSingle', ${trade.id})" class="delete-btn opacity-0 group-hover:opacity-100 transition">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                        </button>
+                    </td>
+                    <td><input type="date" value="${trade.date}" class="font-semibold text-slate-600" onchange="updateTrade(${trade.id}, 'date', this.value)"></td>
+                    <td><input type="text" placeholder="BTCUSDT" value="${trade.asset}" class="font-black uppercase tracking-widest text-slate-800" onchange="updateTrade(${trade.id}, 'asset', this.value)"></td>
+                    <td><select class="font-semibold" onchange="updateTrade(${trade.id}, 'type', this.value)"><option value="Long" ${trade.type==='Long'?'selected':''}>Long</option><option value="Short" ${trade.type==='Short'?'selected':''}>Short</option></select></td>
                     <td><select class="${resultClass}" onchange="updateTrade(${trade.id}, 'result', this.value); render()"><option value="Win" ${trade.result==='Win'?'selected':''}>Win</option><option value="Loss" ${trade.result==='Loss'?'selected':''}>Loss</option><option value="BE" ${trade.result==='BE'?'selected':''}>BE</option></select></td>
-                    <td><input type="number" step="any" class="text-right font-mono text-slate-500" placeholder="0" value="${trade.r_multiple}" onchange="updateTrade(${trade.id}, 'r_multiple', this.value)"></td>
+                    <td><input type="number" step="any" class="text-right font-mono font-bold text-slate-500" placeholder="0" value="${trade.r_multiple}" onchange="updateTrade(${trade.id}, 'r_multiple', this.value)"></td>
                     <td><input type="number" step="any" class="text-right font-mono text-slate-400" placeholder="0.00" value="${trade.commission || ''}" onchange="updateTrade(${trade.id}, 'commission', this.value); render()"></td>
                     <td><input type="number" step="any" class="text-right font-mono ${pnlClass}" placeholder="0.00" value="${trade.pnl}" onchange="updateTrade(${trade.id}, 'pnl', this.value); render()"></td>
-                    <td class="text-center">${trade.chart ? `<a href="${trade.chart}" target="_blank" class="text-indigo-500 font-bold text-[10px] uppercase">Link</a>` : `<span class="text-slate-200 text-[10px]">None</span>`}</td>
+                    <td class="text-center">${trade.chart ? `<a href="${trade.chart}" target="_blank" class="text-indigo-600 font-black text-[10px] tracking-tighter uppercase">Review</a>` : `<span class="text-slate-200 text-[10px]">None</span>`}</td>
                     <td class="text-center"><button id="btn-${trade.id}" onclick="toggleDetails(${trade.id})" class="btn-action btn-details">Details</button></td>
                 `;
-                row.className = "group";
                 
                 const detail = document.createElement('tr');
                 detail.id = `details-${trade.id}`;
@@ -498,11 +519,11 @@
                 detail.innerHTML = `
                     <td colspan="10">
                         <div class="details-grid">
-                            <div class="detail-item"><label>Trading Strategy</label><input type="text" value="${trade.setup}" onchange="updateTrade(${trade.id}, 'setup', this.value)"></div>
-                            <div class="detail-item"><label>Chart Evidence</label><input type="text" value="${trade.chart}" placeholder="TradingView URL" onchange="updateTrade(${trade.id}, 'chart', this.value); render()"></div>
-                            <div class="detail-item"><label>Entry Target</label><input type="number" step="any" value="${trade.entry}" onchange="updateTrade(${trade.id}, 'entry', this.value)"></div>
-                            <div class="detail-item"><label>Invalidation (SL)</label><input type="number" step="any" value="${trade.sl}" onchange="updateTrade(${trade.id}, 'sl', this.value)"></div>
-                            <div class="detail-item"><label>Objective (TP)</label><input type="number" step="any" value="${trade.tp}" onchange="updateTrade(${trade.id}, 'tp', this.value)"></div>
+                            <div class="detail-item"><label>Core Strategy</label><input type="text" value="${trade.setup}" onchange="updateTrade(${trade.id}, 'setup', this.value)"></div>
+                            <div class="detail-item"><label>Chart Evidence</label><input type="text" value="${trade.chart}" placeholder="TradingView Link" onchange="updateTrade(${trade.id}, 'chart', this.value); render()"></div>
+                            <div class="detail-item"><label>Entry Price</label><input type="number" step="any" value="${trade.entry}" onchange="updateTrade(${trade.id}, 'entry', this.value)"></div>
+                            <div class="detail-item"><label>Stop Loss</label><input type="number" step="any" value="${trade.sl}" onchange="updateTrade(${trade.id}, 'sl', this.value)"></div>
+                            <div class="detail-item"><label>Take Profit</label><input type="number" step="any" value="${trade.tp}" onchange="updateTrade(${trade.id}, 'tp', this.value)"></div>
                             <div class="detail-item"><label>Risk Amount</label><input type="number" step="any" value="${trade.size}" placeholder="$0.00" onchange="updateTrade(${trade.id}, 'size', this.value)"></div>
                             <div class="detail-item"><label>Exit Price</label><input type="number" step="any" value="${trade.exit}" onchange="updateTrade(${trade.id}, 'exit', this.value)"></div>
                         </div>
