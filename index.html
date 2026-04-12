@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Trading Journal</title>
+    <title>Trading Journal - File Sync</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -12,12 +12,36 @@
             color: #111827;
             -webkit-tap-highlight-color: transparent;
         }
-        
+
+        /* Custom Scrollbar Styles */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 10px;
+            border: 2px solid #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af;
+        }
+
+        /* Specific styles for the table wrapper scroll */
         .table-wrap {
             height: calc(100vh - 200px);
             overflow: auto;
             position: relative;
             background: white;
+            scrollbar-width: thin;
+            scrollbar-color: #d1d5db #f1f1f1;
         }
 
         table {
@@ -203,11 +227,9 @@
     </style>
 </head>
 <body class="p-3 md:p-8">
-    <!-- Modal Layer -->
     <div id="modalContainer"></div>
 
     <div class="max-w-[1200px] mx-auto">
-        <!-- Header -->
         <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-6">
             <div>
                 <div class="flex items-center gap-3">
@@ -244,7 +266,6 @@
             </div>
         </div>
 
-        <!-- Table -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             <div class="table-wrap">
                 <table id="journalTable">
@@ -279,7 +300,6 @@
         let fileHandle = null;
 
         async function save() {
-            // Only save to local cache if we haven't synced out
             localStorage.setItem(STORAGE_KEY, JSON.stringify(trades));
             localStorage.setItem(CAPITAL_KEY, initialCapital);
             
@@ -300,9 +320,7 @@
                 fileHandle = handle;
                 updateSyncUI(true);
                 await writeToLocalFile();
-            } catch (err) {
-                console.log('File picker cancelled', err);
-            }
+            } catch (err) { console.log('File picker cancelled', err); }
         }
 
         async function openExistingFile() {
@@ -329,28 +347,24 @@
                 } else {
                     alert("Selected file is not a valid journal format.");
                 }
-            } catch (err) {
-                console.log('Open file cancelled', err);
-            }
+            } catch (err) { console.log('Open file cancelled', err); }
         }
 
         function syncOut() {
-            // 1. Disconnect file
             fileHandle = null;
             
-            // 2. Wipe browser memory
+            // Clear all browser memory
             localStorage.removeItem(STORAGE_KEY);
             localStorage.removeItem(CAPITAL_KEY);
             
-            // 3. Reset internal state to empty
+            // Reset to default
             trades = [{ id: Date.now(), date: new Date().toISOString().split('T')[0], asset: '', type: 'Long', setup: '', chart: '', entry: '', sl: '', tp: '', size: '', exit: '', result: 'BE', r_multiple: '', pnl: '' }];
             initialCapital = 0;
             
-            // 4. Update UI
             updateSyncUI(false);
             render();
             
-            alert("Sync Out Complete: Data has been removed from browser memory. Please open your file again next time to resume.");
+            alert("Disconnected: All data has been removed from browser memory.");
         }
 
         async function writeToLocalFile() {
@@ -435,10 +449,7 @@
                 title = "Security Verification";
                 message = `To clear all trades, please enter your current account balance <strong>(${currentBal})</strong> to confirm.`;
                 confirmAction = `validateAndClearAll('${currentBal}')`;
-                verificationHtml = `
-                    <input type="text" id="clearVerifyInput" class="verify-input" placeholder="Enter balance to confirm">
-                    <p id="verifyError" class="text-red-500 text-[10px] mt-1 hidden text-center">Balance does not match.</p>
-                `;
+                verificationHtml = `<input type="text" id="clearVerifyInput" class="verify-input" placeholder="Enter balance to confirm"><p id="verifyError" class="text-red-500 text-[10px] mt-1 hidden text-center">Balance does not match.</p>`;
             }
 
             container.innerHTML = `
@@ -475,14 +486,8 @@
             const input = document.getElementById('clearVerifyInput').value;
             const sanitizedInput = input.replace(/,/g, '');
             const sanitizedRequired = requiredValue.replace(/,/g, '');
-
-            if (sanitizedInput === sanitizedRequired) {
-                confirmClearAll();
-            } else {
-                const error = document.getElementById('verifyError');
-                error.classList.remove('hidden');
-                document.getElementById('clearVerifyInput').classList.add('border-red-500');
-            }
+            if (sanitizedInput === sanitizedRequired) confirmClearAll();
+            else document.getElementById('verifyError').classList.remove('hidden');
         }
 
         function confirmClearAll() {
@@ -513,32 +518,15 @@
 
                 const mainRow = document.createElement('tr');
                 mainRow.innerHTML = `
-                    <td class="text-center">
-                        <button onclick="showModal('deleteSingle', ${trade.id})" class="delete-btn" title="Delete Trade">×</button>
-                    </td>
+                    <td class="text-center"><button onclick="showModal('deleteSingle', ${trade.id})" class="delete-btn">×</button></td>
                     <td><input type="date" value="${trade.date}" onchange="updateTrade(${trade.id}, 'date', this.value)"></td>
                     <td><input type="text" placeholder="Asset" value="${trade.asset}" onchange="updateTrade(${trade.id}, 'asset', this.value)"></td>
-                    <td>
-                        <select onchange="updateTrade(${trade.id}, 'type', this.value)">
-                            <option value="Long" ${trade.type==='Long'?'selected':''}>Long</option>
-                            <option value="Short" ${trade.type==='Short'?'selected':''}>Short</option>
-                        </select>
-                    </td>
-                    <td>
-                        <select class="${resultClass} font-bold" onchange="updateTrade(${trade.id}, 'result', this.value); this.className=this.value==='Win'?'win-text font-bold':(this.value==='Loss'?'loss-text font-bold':'be-text font-bold')">
-                            <option value="Win" ${trade.result==='Win'?'selected':''}>Win</option>
-                            <option value="Loss" ${trade.result==='Loss'?'selected':''}>Loss</option>
-                            <option value="BE" ${trade.result==='BE'?'selected':''}>BE</option>
-                        </select>
-                    </td>
+                    <td><select onchange="updateTrade(${trade.id}, 'type', this.value)"><option value="Long" ${trade.type==='Long'?'selected':''}>Long</option><option value="Short" ${trade.type==='Short'?'selected':''}>Short</option></select></td>
+                    <td><select class="${resultClass} font-bold" onchange="updateTrade(${trade.id}, 'result', this.value); this.className=this.value==='Win'?'win-text font-bold':(this.value==='Loss'?'loss-text font-bold':'be-text font-bold')"><option value="Win" ${trade.result==='Win'?'selected':''}>Win</option><option value="Loss" ${trade.result==='Loss'?'selected':''}>Loss</option><option value="BE" ${trade.result==='BE'?'selected':''}>BE</option></select></td>
                     <td class="bg-amber-50"><input type="number" step="any" class="text-right font-mono" placeholder="R" value="${trade.r_multiple}" onchange="updateTrade(${trade.id}, 'r_multiple', this.value)"></td>
                     <td class="bg-amber-50"><input id="pnl-${trade.id}" type="number" step="any" class="text-right font-mono ${pnlClass}" placeholder="0.00" value="${trade.pnl}" onchange="updateTrade(${trade.id}, 'pnl', this.value)"></td>
-                    <td class="text-center">
-                        ${trade.chart ? `<a href="${trade.chart}" target="_blank" class="text-blue-500 underline text-xs">View Chart</a>` : `<span class="text-gray-300 text-xs">No link</span>`}
-                    </td>
-                    <td class="text-center">
-                        <button id="btn-${trade.id}" onclick="toggleDetails(${trade.id})" class="btn-action btn-details">See Details</button>
-                    </td>
+                    <td class="text-center">${trade.chart ? `<a href="${trade.chart}" target="_blank" class="text-blue-500 underline text-xs">View Chart</a>` : `<span class="text-gray-300 text-xs">No link</span>`}</td>
+                    <td class="text-center"><button id="btn-${trade.id}" onclick="toggleDetails(${trade.id})" class="btn-action btn-details">See Details</button></td>
                 `;
 
                 const detailRow = document.createElement('tr');
@@ -548,16 +536,15 @@
                     <td colspan="9">
                         <div class="details-grid">
                             <div class="detail-item"><label>Setup Name</label><input type="text" value="${trade.setup}" onchange="updateTrade(${trade.id}, 'setup', this.value)"></div>
-                            <div class="detail-item"><label>Chart URL</label><input type="text" value="${trade.chart}" placeholder="TradingView Link" onchange="updateTrade(${trade.id}, 'chart', this.value); render()"></div>
+                            <div class="detail-item"><label>Chart URL</label><input type="text" value="${trade.chart}" placeholder="Link" onchange="updateTrade(${trade.id}, 'chart', this.value); render()"></div>
                             <div class="detail-item"><label>Entry Price</label><input type="number" step="any" value="${trade.entry}" onchange="updateTrade(${trade.id}, 'entry', this.value)"></div>
                             <div class="detail-item"><label>Stop Loss</label><input type="number" step="any" value="${trade.sl}" onchange="updateTrade(${trade.id}, 'sl', this.value)"></div>
                             <div class="detail-item"><label>Take Profit</label><input type="number" step="any" value="${trade.tp}" onchange="updateTrade(${trade.id}, 'tp', this.value)"></div>
-                            <div class="detail-item"><label>Position Size</label><input type="number" step="any" value="${trade.size}" placeholder="Risk Amt" onchange="updateTrade(${trade.id}, 'size', this.value)"></div>
+                            <div class="detail-item"><label>Position Size</label><input type="number" step="any" value="${trade.size}" placeholder="Risk" onchange="updateTrade(${trade.id}, 'size', this.value)"></div>
                             <div class="detail-item"><label>Exit Price</label><input type="number" step="any" value="${trade.exit}" onchange="updateTrade(${trade.id}, 'exit', this.value)"></div>
                         </div>
                     </td>
                 `;
-
                 tbody.appendChild(mainRow);
                 tbody.appendChild(detailRow);
             });
