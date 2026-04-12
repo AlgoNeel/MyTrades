@@ -200,6 +200,43 @@
             background: #ecfdf5;
             color: #059669;
         }
+
+        /* Dropdown Styling */
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: white;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.1);
+            z-index: 50;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            margin-top: 4px;
+        }
+
+        .dropdown-content button {
+            color: #374151;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            width: 100%;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        .dropdown-content button:hover {
+            background-color: #f9fafb;
+        }
+
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
     </style>
 </head>
 <body class="p-3 md:p-8">
@@ -227,9 +264,16 @@
                 </div>
             </div>
             <div class="flex flex-wrap gap-2 w-full md:w-auto">
-                <button id="btnConnectFolder" onclick="connectToLocalFolder()" class="flex-1 md:flex-none border border-blue-200 text-blue-600 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-blue-50 transition">
-                    📁 Set Save Folder
-                </button>
+                <div class="dropdown flex-1 md:flex-none">
+                    <button id="btnConnectFolder" class="w-full border border-blue-200 text-blue-600 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-blue-50 transition flex items-center justify-center gap-2">
+                        📁 File Storage <span class="text-[10px]">▼</span>
+                    </button>
+                    <div class="dropdown-content">
+                        <button onclick="createNewFile()">✨ Create New File</button>
+                        <button onclick="openExistingFile()">📂 Open Existing File</button>
+                    </div>
+                </div>
+                
                 <button onclick="addRow()" class="flex-1 md:flex-none bg-black text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-800 transition shadow-sm">+ Trade</button>
                 <button onclick="showModal('clearAll')" class="flex-1 md:flex-none text-gray-500 border border-gray-200 px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-white transition">Clear All</button>
             </div>
@@ -268,34 +312,57 @@
 
         // Initialize state
         async function save() {
-            // Always save to LocalStorage for immediate UI feedback
             localStorage.setItem('trading_journal_data', JSON.stringify(trades));
             localStorage.setItem('trading_journal_capital', initialCapital);
             
-            // If folder sync is active, save to the selected file
             if (fileHandle) {
                 await writeToLocalFile();
             }
         }
 
-        async function connectToLocalFolder() {
+        async function createNewFile() {
             try {
-                // Request user permission to pick a file/location for saving
                 const handle = await window.showSaveFilePicker({
-                    suggestedName: 'trading-journal.json',
+                    suggestedName: `trading-journal-${new Date().toISOString().split('T')[0]}.json`,
                     types: [{
                         description: 'JSON Files',
                         accept: { 'application/json': ['.json'] },
                     }],
                 });
-                
                 fileHandle = handle;
                 updateSyncUI(true);
                 await writeToLocalFile();
-                
-                // If the file already has content, optionally load it (simplified here to just save current)
             } catch (err) {
-                console.log('File picker cancelled or failed', err);
+                console.log('File picker cancelled', err);
+            }
+        }
+
+        async function openExistingFile() {
+            try {
+                const [handle] = await window.showOpenFilePicker({
+                    types: [{
+                        description: 'JSON Files',
+                        accept: { 'application/json': ['.json'] },
+                    }],
+                    multiple: false
+                });
+                
+                const file = await handle.getFile();
+                const content = await file.text();
+                const data = JSON.parse(content);
+                
+                if (data.trades) {
+                    trades = data.trades;
+                    initialCapital = data.initialCapital || 0;
+                    fileHandle = handle;
+                    updateSyncUI(true);
+                    render();
+                    save();
+                } else {
+                    alert("Selected file is not a valid journal format.");
+                }
+            } catch (err) {
+                console.log('Open file cancelled', err);
             }
         }
 
@@ -310,7 +377,6 @@
                 }, null, 2);
                 await writable.write(data);
                 await writable.close();
-                console.log('Data synced to file system.');
             } catch (err) {
                 console.error('Failed to write file:', err);
                 updateSyncUI(false);
@@ -324,7 +390,7 @@
             if (active) {
                 status.innerHTML = `<span class="w-2 h-2 rounded-full bg-green-500"></span> Synced to Local File`;
                 status.classList.add('sync-active');
-                btn.innerText = "📁 Folder Connected";
+                btn.innerHTML = `📁 File Connected <span class="text-[10px]">▼</span>`;
                 btn.classList.replace('text-blue-600', 'text-green-600');
             } else {
                 status.innerHTML = `<span class="w-2 h-2 rounded-full bg-gray-300"></span> Offline Mode`;
