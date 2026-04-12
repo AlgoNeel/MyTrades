@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Trading Journal</title>
+    <title>Trading Journal - File Sync</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -224,6 +224,24 @@
             background: #ecfdf5;
             color: #059669;
         }
+
+        .stats-badge {
+            display: inline-flex;
+            flex-direction: column;
+            padding: 0 12px;
+            border-left: 1px solid #e5e7eb;
+        }
+        .stats-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            color: #6b7280;
+            font-weight: 600;
+        }
+        .stats-value {
+            font-size: 14px;
+            font-weight: 700;
+            color: #111827;
+        }
     </style>
 </head>
 <body class="p-3 md:p-8">
@@ -245,6 +263,26 @@
                     </div>
                     <div class="text-sm border-l pl-4 border-gray-200">
                         Balance: <span id="currentBalance" class="font-bold">0.00</span>
+                    </div>
+                    
+                    <!-- New Statistics Section -->
+                    <div class="hidden sm:flex items-center ml-2">
+                        <div class="stats-badge">
+                            <span class="stats-label">Total Trades</span>
+                            <span id="statTotal" class="stats-value">0</span>
+                        </div>
+                        <div class="stats-badge">
+                            <span class="stats-label">Win / Loss</span>
+                            <span id="statWinLoss" class="stats-value">0 / 0</span>
+                        </div>
+                        <div class="stats-badge">
+                            <span class="stats-label">Win Rate</span>
+                            <span id="statWinRate" class="stats-value">0%</span>
+                        </div>
+                        <div class="stats-badge">
+                            <span class="stats-label">Duration</span>
+                            <span id="statDuration" class="stats-value">0 days</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -410,7 +448,7 @@
             const trade = trades.find(t => t.id === id);
             if (trade) {
                 trade[field] = value;
-                if (field === 'pnl' || field === 'result' || field === 'commission') {
+                if (field === 'pnl' || field === 'result' || field === 'commission' || field === 'date') {
                     calculateTotalBalance();
                     const pnlInput = document.getElementById(`pnl-${id}`);
                     if(pnlInput) {
@@ -500,16 +538,43 @@
 
         function calculateTotalBalance() {
             let totalNetPL = 0;
+            let wins = 0;
+            let losses = 0;
+            let dates = [];
+
             trades.forEach(t => { 
                 const pnl = parseFloat(t.pnl) || 0;
                 const commission = parseFloat(t.commission) || 0;
-                // Commission is always a cost, so we subtract it from the P/L
                 totalNetPL += (pnl - commission); 
+
+                // Stats calculation
+                if (t.result === 'Win') wins++;
+                if (t.result === 'Loss') losses++;
+                if (t.date) dates.push(new Date(t.date));
             });
+
+            // Update Balance
             const currentBalance = initialCapital + totalNetPL;
             const display = document.getElementById('currentBalance');
             display.innerText = currentBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             display.className = `font-bold ${currentBalance >= initialCapital ? 'text-green-600' : 'text-red-600'}`;
+
+            // Update Dashboard Stats
+            document.getElementById('statTotal').innerText = trades.length;
+            document.getElementById('statWinLoss').innerText = `${wins} / ${losses}`;
+            
+            const winRate = trades.length > 0 ? ((wins / trades.length) * 100).toFixed(1) : 0;
+            document.getElementById('statWinRate').innerText = `${winRate}%`;
+
+            if (dates.length > 1) {
+                const maxDate = new Date(Math.max(...dates));
+                const minDate = new Date(Math.min(...dates));
+                const diffTime = Math.abs(maxDate - minDate);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                document.getElementById('statDuration').innerText = `${diffDays} days`;
+            } else {
+                document.getElementById('statDuration').innerText = `0 days`;
+            }
         }
 
         function render() {
@@ -528,10 +593,10 @@
                 const mainRow = document.createElement('tr');
                 mainRow.innerHTML = `
                     <td class="text-center"><button onclick="showModal('deleteSingle', ${trade.id})" class="delete-btn">×</button></td>
-                    <td><input type="date" value="${trade.date}" onchange="updateTrade(${trade.id}, 'date', this.value)"></td>
+                    <td><input type="date" value="${trade.date}" onchange="updateTrade(${trade.id}, 'date', this.value); calculateTotalBalance()"></td>
                     <td><input type="text" placeholder="Asset" value="${trade.asset}" onchange="updateTrade(${trade.id}, 'asset', this.value)"></td>
                     <td><select onchange="updateTrade(${trade.id}, 'type', this.value)"><option value="Long" ${trade.type==='Long'?'selected':''}>Long</option><option value="Short" ${trade.type==='Short'?'selected':''}>Short</option></select></td>
-                    <td><select class="${resultClass} font-bold" onchange="updateTrade(${trade.id}, 'result', this.value); this.className=this.value==='Win'?'win-text font-bold':(this.value==='Loss'?'loss-text font-bold':'be-text font-bold')"><option value="Win" ${trade.result==='Win'?'selected':''}>Win</option><option value="Loss" ${trade.result==='Loss'?'selected':''}>Loss</option><option value="BE" ${trade.result==='BE'?'selected':''}>BE</option></select></td>
+                    <td><select class="${resultClass} font-bold" onchange="updateTrade(${trade.id}, 'result', this.value); this.className=this.value==='Win'?'win-text font-bold':(this.value==='Loss'?'loss-text font-bold':'be-text font-bold'); calculateTotalBalance()"><option value="Win" ${trade.result==='Win'?'selected':''}>Win</option><option value="Loss" ${trade.result==='Loss'?'selected':''}>Loss</option><option value="BE" ${trade.result==='BE'?'selected':''}>BE</option></select></td>
                     <td class="bg-amber-50"><input type="number" step="any" class="text-right font-mono" placeholder="R" value="${trade.r_multiple}" onchange="updateTrade(${trade.id}, 'r_multiple', this.value)"></td>
                     <td class="bg-amber-50"><input type="number" step="any" class="text-right font-mono text-gray-500" placeholder="0.00" value="${trade.commission || ''}" onchange="updateTrade(${trade.id}, 'commission', this.value); render()"></td>
                     <td class="bg-amber-50"><input id="pnl-${trade.id}" type="number" step="any" class="text-right font-mono ${pnlClass}" placeholder="0.00" value="${trade.pnl}" onchange="updateTrade(${trade.id}, 'pnl', this.value)"></td>
