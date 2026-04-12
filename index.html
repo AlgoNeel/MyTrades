@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Trade Terminal | Professional Journal</title>
+    <title>My Trades</title>
     <!-- Favicon: Candlestick + Notebook Symbol -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%234f46e5%22/><path d=%22M30 40v20M30 45h6v10h-6zM50 30v40M50 35h6v30h-6zM70 50v20M70 55h6v10h-6z%22 stroke=%22white%22 stroke-width=%224%22 fill=%22none%22/><path d=%22M25 20h50a5 5 0 0 1 5 5v50a5 5 0 0 1-5 5H25a5 5 0 0 1-5-5V25a5 5 0 0 1 5-5z%22 fill=%22none%22 stroke=%22rgba(255,255,255,0.3)%22 stroke-width=%222%22/></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -235,9 +235,9 @@
                 </div>
                 <div>
                     <div class="flex items-center gap-2 mb-0.5">
-                        <h1 class="text-2xl font-black text-slate-900 tracking-tight">Trade Terminal</h1>
+                        <h1 class="text-2xl font-black text-slate-900 tracking-tight">My Trades</h1>
                         <span id="syncStatus" class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[9px] font-black uppercase tracking-widest">
-                            Sync Off
+                        Sync Off
                         </span>
                     </div>
                     <div class="flex items-center gap-4">
@@ -256,7 +256,7 @@
             <!-- Dashboard -->
             <div class="grid grid-cols-2 sm:flex items-stretch gap-4 w-full lg:w-auto">
                 <div class="stat-card">
-                    <span class="stat-label">Volume</span>
+                    <span class="stat-label">Total Trade</span>
                     <span id="statTotal" class="stat-value">0</span>
                 </div>
                 <div class="stat-card">
@@ -269,7 +269,7 @@
                     <div class="win-rate-bar"><div id="winRateFill" class="win-rate-fill"></div></div>
                 </div>
                 <div class="stat-card">
-                    <span class="stat-label">Tenure</span>
+                    <span class="stat-label">Trading Days</span>
                     <span id="statDuration" class="stat-value">0 <span class="text-[10px] font-medium text-slate-400">days</span></span>
                 </div>
             </div>
@@ -279,7 +279,7 @@
                 <div class="flex bg-white rounded-xl p-1 border border-slate-200 shadow-sm overflow-hidden">
                     <button onclick="createNewFile()" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 transition">Save File</button>
                     <button onclick="openExistingFile()" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 border-l border-slate-100 transition">Import</button>
-                    <button id="btnSyncOut" onclick="syncOut()" class="hidden px-4 py-2 text-xs font-bold text-red-500 hover:bg-red-50 border-l border-slate-100 transition">Reset</button>
+                    <button id="btnSyncOut" onclick="syncOut()" class="hidden px-4 py-2 text-xs font-bold text-red-500 hover:bg-red-50 border-l border-slate-100 transition">Disconneect</button>
                 </div>
                 <button onclick="addRow()" class="flex-1 lg:flex-none bg-slate-900 text-white px-6 py-3 rounded-xl text-sm font-black hover:bg-black transition shadow-lg shadow-slate-200">
                     + Log Trade
@@ -297,13 +297,13 @@
                     <thead>
                         <tr>
                             <th class="w-10"></th>
-                            <th class="text-left w-36">Timestamp</th>
-                            <th class="text-left w-32">Ticker</th>
+                            <th class="text-left w-36">Time</th>
+                            <th class="text-left w-32">Pair</th>
                             <th class="text-left w-24">Position</th>
                             <th class="text-left w-28">Outcome</th>
                             <th class="text-right w-24">Reward Ratio</th>
                             <th class="text-right w-24">Broker Fee</th>
-                            <th class="text-right w-32 font-bold">Net P/L</th>
+                            <th class="text-right w-32 font-bold">PnL</th>
                             <th class="text-center w-28">Analysis</th>
                             <th class="text-center w-36">Management</th>
                         </tr>
