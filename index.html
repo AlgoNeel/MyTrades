@@ -48,7 +48,7 @@
             border-collapse: separate;
             border-spacing: 0;
             width: 100%;
-            min-width: 800px;
+            min-width: 900px;
         }
 
         @media (max-width: 640px) {
@@ -274,12 +274,13 @@
                             <th class="w-16 text-center"></th>
                             <th class="text-left w-32">Date</th>
                             <th class="text-left w-28">Asset</th>
-                            <th class="text-left w-24">Type</th>
-                            <th class="text-left w-24">Result</th>
-                            <th class="text-right w-28 bg-amber-50">R Mult.</th>
-                            <th class="text-right w-28 bg-amber-50">P/L</th>
+                            <th class="text-left w-20">Type</th>
+                            <th class="text-left w-20">Result</th>
+                            <th class="text-right w-24 bg-amber-50">R Mult.</th>
+                            <th class="text-right w-24 bg-amber-50">Comm.</th>
+                            <th class="text-right w-24 bg-amber-50 font-bold">Net P/L</th>
                             <th class="text-center w-32">Charts</th>
-                            <th class="text-center w-40">Actions</th>
+                            <th class="text-center w-36">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody"></tbody>
@@ -293,7 +294,7 @@
         const CAPITAL_KEY = 'trading_journal_capital';
 
         let trades = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [
-            { id: Date.now(), date: new Date().toISOString().split('T')[0], asset: '', type: 'Long', setup: '', chart: '', entry: '', sl: '', tp: '', size: '', exit: '', result: 'BE', r_multiple: '', pnl: '' }
+            { id: Date.now(), date: new Date().toISOString().split('T')[0], asset: '', type: 'Long', setup: '', chart: '', entry: '', sl: '', tp: '', size: '', exit: '', result: 'BE', r_multiple: '', pnl: '', commission: '' }
         ];
         let initialCapital = parseFloat(localStorage.getItem(CAPITAL_KEY)) || 0;
         let tradeIdPendingDelete = null;
@@ -358,7 +359,7 @@
             localStorage.removeItem(CAPITAL_KEY);
             
             // Reset to default
-            trades = [{ id: Date.now(), date: new Date().toISOString().split('T')[0], asset: '', type: 'Long', setup: '', chart: '', entry: '', sl: '', tp: '', size: '', exit: '', result: 'BE', r_multiple: '', pnl: '' }];
+            trades = [{ id: Date.now(), date: new Date().toISOString().split('T')[0], asset: '', type: 'Long', setup: '', chart: '', entry: '', sl: '', tp: '', size: '', exit: '', result: 'BE', r_multiple: '', pnl: '', commission: '' }];
             initialCapital = 0;
             
             updateSyncUI(false);
@@ -409,11 +410,11 @@
             const trade = trades.find(t => t.id === id);
             if (trade) {
                 trade[field] = value;
-                if (field === 'pnl' || field === 'result') {
+                if (field === 'pnl' || field === 'result' || field === 'commission') {
                     calculateTotalBalance();
                     const pnlInput = document.getElementById(`pnl-${id}`);
                     if(pnlInput) {
-                        const val = parseFloat(value);
+                        const val = parseFloat(trade.pnl || 0) - parseFloat(trade.commission || 0);
                         pnlInput.className = `font-mono text-right ${val > 0 ? 'text-green-600 font-bold' : (val < 0 ? 'text-red-600 font-bold' : 'text-gray-400')}`;
                     }
                 }
@@ -429,7 +430,7 @@
         }
 
         function addRow() {
-            const newTrade = { id: Date.now(), date: new Date().toISOString().split('T')[0], asset: '', type: 'Long', setup: '', chart: '', entry: '', sl: '', tp: '', size: '', exit: '', result: 'BE', r_multiple: '', pnl: '' };
+            const newTrade = { id: Date.now(), date: new Date().toISOString().split('T')[0], asset: '', type: 'Long', setup: '', chart: '', entry: '', sl: '', tp: '', size: '', exit: '', result: 'BE', r_multiple: '', pnl: '', commission: '' };
             trades.unshift(newTrade);
             render();
             save();
@@ -498,9 +499,13 @@
         }
 
         function calculateTotalBalance() {
-            let totalPL = 0;
-            trades.forEach(t => { if(!isNaN(parseFloat(t.pnl))) totalPL += parseFloat(t.pnl); });
-            const currentBalance = initialCapital + totalPL;
+            let totalNetPL = 0;
+            trades.forEach(t => { 
+                const pnl = parseFloat(t.pnl) || 0;
+                const commission = parseFloat(t.commission) || 0;
+                totalNetPL += (pnl - commission); 
+            });
+            const currentBalance = initialCapital + totalNetPL;
             const display = document.getElementById('currentBalance');
             display.innerText = currentBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             display.className = `font-bold ${currentBalance >= initialCapital ? 'text-green-600' : 'text-red-600'}`;
@@ -512,8 +517,11 @@
             tbody.innerHTML = '';
 
             trades.forEach(trade => {
-                const pnlVal = parseFloat(trade.pnl);
-                const pnlClass = pnlVal > 0 ? 'text-green-600 font-bold' : (pnlVal < 0 ? 'text-red-600 font-bold' : 'text-gray-400');
+                const grossPnl = parseFloat(trade.pnl) || 0;
+                const commission = parseFloat(trade.commission) || 0;
+                const netPnl = grossPnl - commission;
+                
+                const pnlClass = netPnl > 0 ? 'text-green-600 font-bold' : (netPnl < 0 ? 'text-red-600 font-bold' : 'text-gray-400');
                 const resultClass = trade.result === 'Win' ? 'win-text' : (trade.result === 'Loss' ? 'loss-text' : 'be-text');
 
                 const mainRow = document.createElement('tr');
@@ -524,6 +532,7 @@
                     <td><select onchange="updateTrade(${trade.id}, 'type', this.value)"><option value="Long" ${trade.type==='Long'?'selected':''}>Long</option><option value="Short" ${trade.type==='Short'?'selected':''}>Short</option></select></td>
                     <td><select class="${resultClass} font-bold" onchange="updateTrade(${trade.id}, 'result', this.value); this.className=this.value==='Win'?'win-text font-bold':(this.value==='Loss'?'loss-text font-bold':'be-text font-bold')"><option value="Win" ${trade.result==='Win'?'selected':''}>Win</option><option value="Loss" ${trade.result==='Loss'?'selected':''}>Loss</option><option value="BE" ${trade.result==='BE'?'selected':''}>BE</option></select></td>
                     <td class="bg-amber-50"><input type="number" step="any" class="text-right font-mono" placeholder="R" value="${trade.r_multiple}" onchange="updateTrade(${trade.id}, 'r_multiple', this.value)"></td>
+                    <td class="bg-amber-50"><input type="number" step="any" class="text-right font-mono text-gray-500" placeholder="0.00" value="${trade.commission || ''}" onchange="updateTrade(${trade.id}, 'commission', this.value); render()"></td>
                     <td class="bg-amber-50"><input id="pnl-${trade.id}" type="number" step="any" class="text-right font-mono ${pnlClass}" placeholder="0.00" value="${trade.pnl}" onchange="updateTrade(${trade.id}, 'pnl', this.value)"></td>
                     <td class="text-center">${trade.chart ? `<a href="${trade.chart}" target="_blank" class="text-blue-500 underline text-xs">View Chart</a>` : `<span class="text-gray-300 text-xs">No link</span>`}</td>
                     <td class="text-center"><button id="btn-${trade.id}" onclick="toggleDetails(${trade.id})" class="btn-action btn-details">See Details</button></td>
@@ -533,7 +542,7 @@
                 detailRow.id = `details-${trade.id}`;
                 detailRow.className = 'details-row';
                 detailRow.innerHTML = `
-                    <td colspan="9">
+                    <td colspan="10">
                         <div class="details-grid">
                             <div class="detail-item"><label>Setup Name</label><input type="text" value="${trade.setup}" onchange="updateTrade(${trade.id}, 'setup', this.value)"></div>
                             <div class="detail-item"><label>Chart URL</label><input type="text" value="${trade.chart}" placeholder="Link" onchange="updateTrade(${trade.id}, 'chart', this.value); render()"></div>
@@ -542,6 +551,7 @@
                             <div class="detail-item"><label>Take Profit</label><input type="number" step="any" value="${trade.tp}" onchange="updateTrade(${trade.id}, 'tp', this.value)"></div>
                             <div class="detail-item"><label>Position Size</label><input type="number" step="any" value="${trade.size}" placeholder="Risk" onchange="updateTrade(${trade.id}, 'size', this.value)"></div>
                             <div class="detail-item"><label>Exit Price</label><input type="number" step="any" value="${trade.exit}" onchange="updateTrade(${trade.id}, 'exit', this.value)"></div>
+                            <div class="detail-item"><label>Broker Fee</label><input type="number" step="any" value="${trade.commission || ''}" placeholder="0.00" onchange="updateTrade(${trade.id}, 'commission', this.value); render()"></div>
                         </div>
                     </td>
                 `;
