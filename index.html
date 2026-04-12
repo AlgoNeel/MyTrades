@@ -3,93 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Trading Journal - File Sync</title>
+    <title>Trading Journal - Professional Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f9fafb;
-            color: #111827;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f8fafc;
+            color: #0f172a;
             -webkit-tap-highlight-color: transparent;
         }
 
         /* Custom Scrollbar Styles */
         ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
+            width: 6px;
+            height: 6px;
         }
 
         ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
+            background: #f1f5f9;
         }
 
         ::-webkit-scrollbar-thumb {
-            background: #d1d5db;
+            background: #cbd5e1;
             border-radius: 10px;
-            border: 2px solid #f1f1f1;
         }
 
         ::-webkit-scrollbar-thumb:hover {
-            background: #9ca3af;
+            background: #94a3b8;
         }
 
-        /* Specific styles for the table wrapper scroll */
         .table-wrap {
-            height: calc(100vh - 200px);
+            height: calc(100vh - 250px);
             overflow: auto;
             position: relative;
             background: white;
-            scrollbar-width: thin;
-            scrollbar-color: #d1d5db #f1f1f1;
+            border-radius: 12px;
         }
 
         table {
             border-collapse: separate;
             border-spacing: 0;
             width: 100%;
-            min-width: 900px;
-        }
-
-        @media (max-width: 640px) {
-            .table-wrap {
-                height: calc(100vh - 240px);
-            }
+            min-width: 1000px;
         }
 
         thead th {
             position: sticky;
             top: 0;
             z-index: 20;
-            background-color: #f3f4f6;
-            border-bottom: 2px solid #e5e7eb;
+            background-color: #ffffff;
+            border-bottom: 1px solid #e2e8f0;
             font-weight: 600;
             text-transform: uppercase;
-            font-size: 0.65rem;
+            font-size: 0.7rem;
             letter-spacing: 0.05em;
-            padding: 12px 8px;
-            white-space: nowrap;
+            padding: 14px 12px;
+            color: #64748b;
         }
 
         td {
-            border-bottom: 1px solid #f3f4f6;
-            padding: 4px 8px;
+            border-bottom: 1px solid #f1f5f9;
+            padding: 8px 12px;
+            transition: background 0.1s;
+        }
+
+        tr:hover td {
+            background-color: #f8fafc;
         }
 
         input, select {
             width: 100%;
-            padding: 8px 6px;
+            padding: 6px 4px;
             border: 1px solid transparent;
             background: transparent;
             outline: none;
             font-size: 0.875rem;
-            appearance: none;
+            color: #334155;
+            transition: all 0.2s;
         }
 
         input:focus, select:focus {
             background: #ffffff;
-            border-color: #3b82f6;
+            border-color: #94a3b8;
             border-radius: 4px;
+            box-shadow: 0 0 0 2px rgba(226, 232, 240, 0.5);
         }
 
         .details-row {
@@ -103,13 +100,14 @@
 
         .details-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 1rem;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1.25rem;
             padding: 1.5rem;
             background: #ffffff;
-            margin: 0.5rem;
-            border-radius: 8px;
+            margin: 0.75rem;
+            border-radius: 12px;
             border: 1px solid #e2e8f0;
+            box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.05);
         }
 
         .detail-item label {
@@ -117,44 +115,43 @@
             font-size: 0.65rem;
             font-weight: 700;
             text-transform: uppercase;
-            color: #64748b;
-            margin-bottom: 4px;
+            color: #94a3b8;
+            margin-bottom: 6px;
         }
 
         .detail-item input {
             border: 1px solid #e2e8f0;
-            border-radius: 4px;
-            background: #fdfdfd;
+            border-radius: 6px;
+            padding: 8px 10px;
+            background: #fcfcfc;
         }
 
-        .win-text { color: #059669; }
-        .loss-text { color: #dc2626; }
-        .be-text { color: #6b7280; }
+        .win-text { color: #10b981; }
+        .loss-text { color: #ef4444; }
+        .be-text { color: #94a3b8; }
         
         .btn-action {
-            padding: 4px 10px;
-            border-radius: 6px;
+            padding: 6px 12px;
+            border-radius: 8px;
             font-size: 0.75rem;
             font-weight: 600;
             transition: all 0.2s;
-            white-space: nowrap;
         }
 
         .btn-details {
-            background-color: #eff6ff;
-            color: #2563eb;
+            background-color: #f1f5f9;
+            color: #475569;
+            border: 1px solid #e2e8f0;
         }
         
         .btn-details:hover {
-            background-color: #dbeafe;
+            background-color: #e2e8f0;
         }
 
         .delete-btn {
-            color: #9ca3af;
+            color: #cbd5e1;
             transition: all 0.2s;
             cursor: pointer;
-            font-size: 1.2rem;
-            line-height: 1;
             padding: 4px;
         }
         .delete-btn:hover {
@@ -162,162 +159,134 @@
         }
 
         .capital-input {
-            border-bottom: 1px dashed #d1d5db;
+            border-bottom: 1px solid #e2e8f0;
             font-weight: 700;
-            width: 110px;
+            width: 100px;
             text-align: right;
+            color: #0f172a;
         }
 
-        .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 100;
-            backdrop-filter: blur(2px);
-        }
-        
-        .modal-content {
+        .stat-card {
             background: white;
-            padding: 24px;
+            padding: 12px 16px;
             border-radius: 12px;
-            width: 90%;
-            max-width: 400px;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-            animation: modalIn 0.2s ease-out;
-        }
-
-        @keyframes modalIn {
-            from { transform: scale(0.95); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-        }
-
-        .verify-input {
-            width: 100%;
-            border: 1px solid #e5e7eb;
-            border-radius: 6px;
-            padding: 10px;
-            margin-top: 10px;
-            text-align: center;
-            font-weight: bold;
-            background: #f9fafb;
-        }
-        .verify-input:focus {
-            background: white;
-            border-color: #ef4444;
-        }
-
-        .sync-indicator {
+            border: 1px solid #e2e8f0;
+            min-width: 110px;
             display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 11px;
-            padding: 4px 10px;
-            border-radius: 20px;
-            background: #f3f4f6;
-            color: #6b7280;
-        }
-
-        .sync-active {
-            background: #ecfdf5;
-            color: #059669;
-        }
-
-        .stats-badge {
-            display: inline-flex;
             flex-direction: column;
-            padding: 0 12px;
-            border-left: 1px solid #e5e7eb;
+            justify-content: center;
         }
-        .stats-label {
-            font-size: 10px;
-            text-transform: uppercase;
-            color: #6b7280;
-            font-weight: 600;
-        }
-        .stats-value {
-            font-size: 14px;
+
+        .stat-label {
+            font-size: 0.65rem;
             font-weight: 700;
-            color: #111827;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+            margin-bottom: 2px;
+        }
+
+        .stat-value {
+            font-size: 1.125rem;
+            font-weight: 800;
+            color: #1e293b;
+            line-height: 1.2;
+        }
+
+        .win-rate-bar {
+            height: 4px;
+            width: 100%;
+            background: #f1f5f9;
+            border-radius: 2px;
+            margin-top: 6px;
+            overflow: hidden;
+        }
+
+        .win-rate-fill {
+            height: 100%;
+            background: linear-gradient(to right, #10b981, #34d399);
+            width: 0%;
+            transition: width 0.5s ease-out;
         }
     </style>
 </head>
-<body class="p-3 md:p-8">
+<body class="p-4 md:p-8">
     <div id="modalContainer"></div>
 
-    <div class="max-w-[1200px] mx-auto">
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-6">
+    <div class="max-w-[1400px] mx-auto">
+        <!-- Header Section -->
+        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-8">
             <div>
-                <div class="flex items-center gap-3">
-                    <h1 class="text-xl font-bold tracking-tight">Trading Journal</h1>
-                    <div id="syncStatus" class="sync-indicator">
-                        <span class="w-2 h-2 rounded-full bg-gray-300"></span>
-                        Offline Mode (Browser Only)
+                <div class="flex items-center gap-3 mb-1">
+                    <h1 class="text-2xl font-black text-slate-900 tracking-tight">Trade Terminal</h1>
+                    <div id="syncStatus" class="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest px-2 py-1 bg-slate-100 rounded-md text-slate-500">
+                        <span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
+                        Offline
                     </div>
                 </div>
-                <div class="flex items-center gap-4 mt-2">
-                    <div class="text-sm text-gray-500">
-                        Initial: <input type="number" id="initialCapital" class="capital-input" placeholder="0.00" onchange="updateCapital(this.value)">
+                <div class="flex items-center gap-6">
+                    <div class="flex flex-col">
+                        <span class="text-[10px] uppercase font-bold text-slate-400">Initial Capital</span>
+                        <input type="number" id="initialCapital" class="capital-input text-lg" placeholder="0.00" onchange="updateCapital(this.value)">
                     </div>
-                    <div class="text-sm border-l pl-4 border-gray-200">
-                        Balance: <span id="currentBalance" class="font-bold">0.00</span>
-                    </div>
-                    
-                    <!-- New Statistics Section -->
-                    <div class="hidden sm:flex items-center ml-2">
-                        <div class="stats-badge">
-                            <span class="stats-label">Total Trades</span>
-                            <span id="statTotal" class="stats-value">0</span>
-                        </div>
-                        <div class="stats-badge">
-                            <span class="stats-label">Win / Loss</span>
-                            <span id="statWinLoss" class="stats-value">0 / 0</span>
-                        </div>
-                        <div class="stats-badge">
-                            <span class="stats-label">Win Rate</span>
-                            <span id="statWinRate" class="stats-value">0%</span>
-                        </div>
-                        <div class="stats-badge">
-                            <span class="stats-label">Duration</span>
-                            <span id="statDuration" class="stats-value">0 days</span>
-                        </div>
+                    <div class="h-8 w-px bg-slate-200"></div>
+                    <div class="flex flex-col">
+                        <span class="text-[10px] uppercase font-bold text-slate-400">Live Balance</span>
+                        <span id="currentBalance" class="text-lg font-black text-slate-900">0.00</span>
                     </div>
                 </div>
             </div>
-            <div class="flex flex-wrap gap-2 w-full md:w-auto">
-                <button onclick="createNewFile()" class="flex-1 md:flex-none bg-white border border-gray-200 text-gray-700 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-50 transition shadow-sm">
-                    ✨ New File
-                </button>
-                <button onclick="openExistingFile()" class="flex-1 md:flex-none bg-white border border-gray-200 text-gray-700 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-50 transition shadow-sm">
-                    📂 Open File
-                </button>
-                <button id="btnSyncOut" onclick="syncOut()" class="hidden flex-1 md:flex-none border border-red-200 text-red-600 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-red-50 transition">
-                    🔌 Sync Out
-                </button>
-                
-                <div class="h-10 w-px bg-gray-200 mx-1 hidden md:block"></div>
 
-                <button onclick="addRow()" class="flex-1 md:flex-none bg-black text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-800 transition shadow-sm">+ Trade</button>
-                <button onclick="showModal('clearAll')" class="flex-1 md:flex-none text-gray-500 border border-gray-200 px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-white transition">Clear All</button>
+            <!-- Stats Dashboard -->
+            <div class="grid grid-cols-2 sm:flex items-stretch gap-3 w-full lg:w-auto">
+                <div class="stat-card">
+                    <span class="stat-label">Total Trades</span>
+                    <span id="statTotal" class="stat-value">0</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Win / Loss</span>
+                    <span id="statWinLoss" class="stat-value text-slate-600">0 : 0</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Win Rate</span>
+                    <span id="statWinRate" class="stat-value text-emerald-600">0%</span>
+                    <div class="win-rate-bar"><div id="winRateFill" class="win-rate-fill"></div></div>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Duration</span>
+                    <span id="statDuration" class="stat-value">0 <span class="text-[10px] font-normal text-slate-400">days</span></span>
+                </div>
+            </div>
+
+            <!-- Global Actions -->
+            <div class="flex flex-wrap gap-2 w-full lg:w-auto">
+                <div class="flex bg-white rounded-lg p-1 border border-slate-200 shadow-sm">
+                    <button onclick="createNewFile()" class="px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 rounded-md transition">New</button>
+                    <button onclick="openExistingFile()" class="px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 rounded-md transition">Open</button>
+                    <button id="btnSyncOut" onclick="syncOut()" class="hidden px-3 py-2 text-xs font-bold text-red-600 hover:bg-red-50 rounded-md transition">Disconnect</button>
+                </div>
+                <button onclick="addRow()" class="bg-indigo-600 text-white px-6 py-2.5 rounded-lg text-sm font-bold hover:bg-indigo-700 transition shadow-md shadow-indigo-100">+ New Entry</button>
+                <button onclick="showModal('clearAll')" class="text-slate-400 hover:text-red-500 transition px-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+                </button>
             </div>
         </div>
 
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <!-- Table Section -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
             <div class="table-wrap">
                 <table id="journalTable">
                     <thead>
                         <tr>
-                            <th class="w-16 text-center"></th>
+                            <th class="w-12"></th>
                             <th class="text-left w-32">Date</th>
                             <th class="text-left w-28">Asset</th>
                             <th class="text-left w-20">Type</th>
-                            <th class="text-left w-20">Result</th>
-                            <th class="text-right w-24 bg-amber-50">R Mult.</th>
-                            <th class="text-right w-24 bg-amber-50">Comm.</th>
-                            <th class="text-right w-24 bg-amber-50 font-bold">Net P/L</th>
-                            <th class="text-center w-32">Charts</th>
+                            <th class="text-left w-24">Result</th>
+                            <th class="text-right w-24">R Mult.</th>
+                            <th class="text-right w-24">Fee</th>
+                            <th class="text-right w-28 font-bold">Net P/L</th>
+                            <th class="text-center w-28">Analysis</th>
                             <th class="text-center w-36">Actions</th>
                         </tr>
                     </thead>
@@ -328,8 +297,8 @@
     </div>
 
     <script>
-        const STORAGE_KEY = 'trading_journal_data';
-        const CAPITAL_KEY = 'trading_journal_capital';
+        const STORAGE_KEY = 'trading_journal_data_v2';
+        const CAPITAL_KEY = 'trading_journal_capital_v2';
 
         let trades = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [
             { id: Date.now(), date: new Date().toISOString().split('T')[0], asset: '', type: 'Long', setup: '', chart: '', entry: '', sl: '', tp: '', size: '', exit: '', result: 'BE', r_multiple: '', pnl: '', commission: '' }
@@ -341,41 +310,27 @@
         async function save() {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(trades));
             localStorage.setItem(CAPITAL_KEY, initialCapital);
-            
-            if (fileHandle) {
-                await writeToLocalFile();
-            }
+            if (fileHandle) await writeToLocalFile();
         }
 
         async function createNewFile() {
             try {
                 const handle = await window.showSaveFilePicker({
-                    suggestedName: `trading-journal-${new Date().toISOString().split('T')[0]}.json`,
-                    types: [{
-                        description: 'JSON Files',
-                        accept: { 'application/json': ['.json'] },
-                    }],
+                    suggestedName: `journal-${new Date().toISOString().split('T')[0]}.json`,
+                    types: [{ description: 'JSON', accept: { 'application/json': ['.json'] } }],
                 });
                 fileHandle = handle;
                 updateSyncUI(true);
                 await writeToLocalFile();
-            } catch (err) { console.log('File picker cancelled', err); }
+            } catch (err) {}
         }
 
         async function openExistingFile() {
             try {
-                const [handle] = await window.showOpenFilePicker({
-                    types: [{
-                        description: 'JSON Files',
-                        accept: { 'application/json': ['.json'] },
-                    }],
-                    multiple: false
-                });
-                
+                const [handle] = await window.showOpenFilePicker({ types: [{ accept: { 'application/json': ['.json'] } }] });
                 const file = await handle.getFile();
                 const content = await file.text();
                 const data = JSON.parse(content);
-                
                 if (data.trades) {
                     trades = data.trades;
                     initialCapital = data.initialCapital || 0;
@@ -383,59 +338,34 @@
                     updateSyncUI(true);
                     render();
                     save();
-                } else {
-                    alert("Selected file is not a valid journal format.");
                 }
-            } catch (err) { console.log('Open file cancelled', err); }
+            } catch (err) {}
         }
 
         function syncOut() {
             fileHandle = null;
-            
-            // Clear all browser memory
             localStorage.removeItem(STORAGE_KEY);
             localStorage.removeItem(CAPITAL_KEY);
-            
-            // Reset to default
             trades = [{ id: Date.now(), date: new Date().toISOString().split('T')[0], asset: '', type: 'Long', setup: '', chart: '', entry: '', sl: '', tp: '', size: '', exit: '', result: 'BE', r_multiple: '', pnl: '', commission: '' }];
             initialCapital = 0;
-            
             updateSyncUI(false);
             render();
-            
-            alert("Disconnected: All data has been removed from browser memory.");
         }
 
         async function writeToLocalFile() {
             if (!fileHandle) return;
             try {
                 const writable = await fileHandle.createWritable();
-                const data = JSON.stringify({
-                    trades: trades,
-                    initialCapital: initialCapital,
-                    lastSaved: new Date().toISOString()
-                }, null, 2);
-                await writable.write(data);
+                await writable.write(JSON.stringify({ trades, initialCapital, lastSaved: new Date().toISOString() }, null, 2));
                 await writable.close();
-            } catch (err) {
-                console.error('Failed to write file:', err);
-                updateSyncUI(false);
-                fileHandle = null;
-            }
+            } catch (err) { fileHandle = null; updateSyncUI(false); }
         }
 
         function updateSyncUI(active) {
             const status = document.getElementById('syncStatus');
             const syncBtn = document.getElementById('btnSyncOut');
-            if (active) {
-                status.innerHTML = `<span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Connected & Syncing`;
-                status.classList.add('sync-active');
-                syncBtn.classList.remove('hidden');
-            } else {
-                status.innerHTML = `<span class="w-2 h-2 rounded-full bg-gray-300"></span> Offline Mode (Browser Only)`;
-                status.classList.remove('sync-active');
-                syncBtn.classList.add('hidden');
-            }
+            status.innerHTML = active ? `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Connected` : `<span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span> Offline`;
+            active ? syncBtn.classList.remove('hidden') : syncBtn.classList.add('hidden');
         }
 
         function updateCapital(val) {
@@ -448,14 +378,7 @@
             const trade = trades.find(t => t.id === id);
             if (trade) {
                 trade[field] = value;
-                if (field === 'pnl' || field === 'result' || field === 'commission' || field === 'date') {
-                    calculateTotalBalance();
-                    const pnlInput = document.getElementById(`pnl-${id}`);
-                    if(pnlInput) {
-                        const val = parseFloat(trade.pnl || 0) - parseFloat(trade.commission || 0);
-                        pnlInput.className = `font-mono text-right ${val > 0 ? 'text-green-600 font-bold' : (val < 0 ? 'text-red-600 font-bold' : 'text-gray-400')}`;
-                    }
-                }
+                calculateTotalBalance();
                 save();
             }
         }
@@ -464,7 +387,8 @@
             const el = document.getElementById(`details-${id}`);
             const btn = document.getElementById(`btn-${id}`);
             const isActive = el.classList.toggle('active');
-            btn.innerText = isActive ? 'Close Details' : 'See Details';
+            btn.innerText = isActive ? 'Close' : 'Details';
+            btn.className = isActive ? 'btn-action bg-slate-800 text-white' : 'btn-action btn-details';
         }
 
         function addRow() {
@@ -477,103 +401,67 @@
         function showModal(type, id = null) {
             const container = document.getElementById('modalContainer');
             tradeIdPendingDelete = id;
-
-            let title = "Confirm Delete";
-            let message = "Are you sure you want to delete this trade?";
-            let confirmAction = "confirmDelete()";
-            let verificationHtml = "";
+            let title = "Confirm Delete", message = "Remove this trade entry permanently?", confirmAction = "confirmDelete()", verification = "";
             
             if (type === 'clearAll') {
-                const currentBal = document.getElementById('currentBalance').innerText;
-                title = "Security Verification";
-                message = `To clear all trades, please enter your current account balance <strong>(${currentBal})</strong> to confirm.`;
-                confirmAction = `validateAndClearAll('${currentBal}')`;
-                verificationHtml = `<input type="text" id="clearVerifyInput" class="verify-input" placeholder="Enter balance to confirm"><p id="verifyError" class="text-red-500 text-[10px] mt-1 hidden text-center">Balance does not match.</p>`;
+                const cur = document.getElementById('currentBalance').innerText;
+                title = "Security Check";
+                message = `Enter current balance <strong>(${cur})</strong> to wipe all data.`;
+                confirmAction = `validateAndClearAll('${cur}')`;
+                verification = `<input type="text" id="clearVerifyInput" class="w-full mt-4 p-3 bg-slate-50 border border-slate-200 rounded-lg text-center font-bold">`;
             }
 
             container.innerHTML = `
-                <div class="modal-overlay">
-                    <div class="modal-content">
-                        <h2 class="text-lg font-bold mb-2">${title}</h2>
-                        <p class="text-gray-500 text-sm mb-4">${message}</p>
-                        ${verificationHtml}
-                        <div class="flex gap-3 mt-6">
-                            <button onclick="closeModal()" class="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition">No, Cancel</button>
-                            <button onclick="${confirmAction}" class="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition">Confirm Action</button>
+                <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+                    <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl scale-in">
+                        <h2 class="text-lg font-bold text-slate-900 mb-1">${title}</h2>
+                        <p class="text-slate-500 text-sm mb-4">${message}</p>
+                        ${verification}
+                        <div class="flex gap-2 mt-6">
+                            <button onclick="closeModal()" class="flex-1 py-2.5 text-sm font-bold text-slate-500 hover:bg-slate-50 rounded-xl transition">Cancel</button>
+                            <button onclick="${confirmAction}" class="flex-1 py-2.5 text-sm font-bold bg-red-500 text-white hover:bg-red-600 rounded-xl shadow-lg shadow-red-100 transition">Confirm</button>
                         </div>
                     </div>
                 </div>
             `;
         }
 
-        function closeModal() {
-            document.getElementById('modalContainer').innerHTML = '';
-            tradeIdPendingDelete = null;
-        }
-
+        function closeModal() { document.getElementById('modalContainer').innerHTML = ''; }
         function confirmDelete() {
-            if (tradeIdPendingDelete) {
-                trades = trades.filter(t => t.id !== tradeIdPendingDelete);
-                if (trades.length === 0) addRow();
-                else render();
-                save();
+            if (tradeIdPendingDelete) { trades = trades.filter(t => t.id !== tradeIdPendingDelete); trades.length === 0 ? addRow() : render(); save(); }
+            closeModal();
+        }
+        function validateAndClearAll(req) {
+            if (document.getElementById('clearVerifyInput').value.replace(/,/g, '') === req.replace(/,/g, '')) {
+                trades = []; addRow(); save(); closeModal();
             }
-            closeModal();
-        }
-
-        function validateAndClearAll(requiredValue) {
-            const input = document.getElementById('clearVerifyInput').value;
-            const sanitizedInput = input.replace(/,/g, '');
-            const sanitizedRequired = requiredValue.replace(/,/g, '');
-            if (sanitizedInput === sanitizedRequired) confirmClearAll();
-            else document.getElementById('verifyError').classList.remove('hidden');
-        }
-
-        function confirmClearAll() {
-            trades = [];
-            addRow();
-            save();
-            closeModal();
         }
 
         function calculateTotalBalance() {
-            let totalNetPL = 0;
-            let wins = 0;
-            let losses = 0;
-            let dates = [];
-
+            let totalNetPL = 0, wins = 0, losses = 0, dates = [];
             trades.forEach(t => { 
-                const pnl = parseFloat(t.pnl) || 0;
-                const commission = parseFloat(t.commission) || 0;
-                totalNetPL += (pnl - commission); 
-
-                // Stats calculation
-                if (t.result === 'Win') wins++;
-                if (t.result === 'Loss') losses++;
+                const pnl = parseFloat(t.pnl) || 0, comm = parseFloat(t.commission) || 0;
+                totalNetPL += (pnl - comm); 
+                if (t.result === 'Win') wins++; else if (t.result === 'Loss') losses++;
                 if (t.date) dates.push(new Date(t.date));
             });
 
-            // Update Balance
             const currentBalance = initialCapital + totalNetPL;
             const display = document.getElementById('currentBalance');
             display.innerText = currentBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            display.className = `font-bold ${currentBalance >= initialCapital ? 'text-green-600' : 'text-red-600'}`;
+            display.className = `text-lg font-black ${currentBalance >= initialCapital ? 'text-emerald-600' : 'text-red-500'}`;
 
-            // Update Dashboard Stats
             document.getElementById('statTotal').innerText = trades.length;
-            document.getElementById('statWinLoss').innerText = `${wins} / ${losses}`;
-            
-            const winRate = trades.length > 0 ? ((wins / trades.length) * 100).toFixed(1) : 0;
-            document.getElementById('statWinRate').innerText = `${winRate}%`;
+            document.getElementById('statWinLoss').innerText = `${wins} : ${losses}`;
+            const wr = trades.length > 0 ? ((wins / trades.length) * 100).toFixed(0) : 0;
+            document.getElementById('statWinRate').innerText = `${wr}%`;
+            document.getElementById('winRateFill').style.width = `${wr}%`;
 
             if (dates.length > 1) {
-                const maxDate = new Date(Math.max(...dates));
-                const minDate = new Date(Math.min(...dates));
-                const diffTime = Math.abs(maxDate - minDate);
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                document.getElementById('statDuration').innerText = `${diffDays} days`;
+                const diff = Math.ceil(Math.abs(new Date(Math.max(...dates)) - new Date(Math.min(...dates))) / (1000 * 60 * 60 * 24));
+                document.getElementById('statDuration').innerHTML = `${diff} <span class="text-[10px] font-normal text-slate-400">days</span>`;
             } else {
-                document.getElementById('statDuration').innerText = `0 days`;
+                document.getElementById('statDuration').innerHTML = `0 <span class="text-[10px] font-normal text-slate-400">days</span>`;
             }
         }
 
@@ -583,46 +471,45 @@
             tbody.innerHTML = '';
 
             trades.forEach(trade => {
-                const grossPnl = parseFloat(trade.pnl) || 0;
-                const commission = parseFloat(trade.commission) || 0;
-                const netPnl = grossPnl - commission;
-                
-                const pnlClass = netPnl > 0 ? 'text-green-600 font-bold' : (netPnl < 0 ? 'text-red-600 font-bold' : 'text-gray-400');
-                const resultClass = trade.result === 'Win' ? 'win-text' : (trade.result === 'Loss' ? 'loss-text' : 'be-text');
+                const net = (parseFloat(trade.pnl) || 0) - (parseFloat(trade.commission) || 0);
+                const pnlClass = net > 0 ? 'text-emerald-600 font-bold' : (net < 0 ? 'text-red-500 font-bold' : 'text-slate-300');
+                const resultClass = trade.result === 'Win' ? 'win-text font-bold' : (trade.result === 'Loss' ? 'loss-text font-bold' : 'be-text font-bold');
 
-                const mainRow = document.createElement('tr');
-                mainRow.innerHTML = `
-                    <td class="text-center"><button onclick="showModal('deleteSingle', ${trade.id})" class="delete-btn">×</button></td>
-                    <td><input type="date" value="${trade.date}" onchange="updateTrade(${trade.id}, 'date', this.value); calculateTotalBalance()"></td>
-                    <td><input type="text" placeholder="Asset" value="${trade.asset}" onchange="updateTrade(${trade.id}, 'asset', this.value)"></td>
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="text-center"><button onclick="showModal('deleteSingle', ${trade.id})" class="delete-btn opacity-0 group-hover:opacity-100 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                    </button></td>
+                    <td><input type="date" value="${trade.date}" class="font-medium" onchange="updateTrade(${trade.id}, 'date', this.value)"></td>
+                    <td><input type="text" placeholder="Ticker" value="${trade.asset}" class="font-bold uppercase tracking-wider" onchange="updateTrade(${trade.id}, 'asset', this.value)"></td>
                     <td><select onchange="updateTrade(${trade.id}, 'type', this.value)"><option value="Long" ${trade.type==='Long'?'selected':''}>Long</option><option value="Short" ${trade.type==='Short'?'selected':''}>Short</option></select></td>
-                    <td><select class="${resultClass} font-bold" onchange="updateTrade(${trade.id}, 'result', this.value); this.className=this.value==='Win'?'win-text font-bold':(this.value==='Loss'?'loss-text font-bold':'be-text font-bold'); calculateTotalBalance()"><option value="Win" ${trade.result==='Win'?'selected':''}>Win</option><option value="Loss" ${trade.result==='Loss'?'selected':''}>Loss</option><option value="BE" ${trade.result==='BE'?'selected':''}>BE</option></select></td>
-                    <td class="bg-amber-50"><input type="number" step="any" class="text-right font-mono" placeholder="R" value="${trade.r_multiple}" onchange="updateTrade(${trade.id}, 'r_multiple', this.value)"></td>
-                    <td class="bg-amber-50"><input type="number" step="any" class="text-right font-mono text-gray-500" placeholder="0.00" value="${trade.commission || ''}" onchange="updateTrade(${trade.id}, 'commission', this.value); render()"></td>
-                    <td class="bg-amber-50"><input id="pnl-${trade.id}" type="number" step="any" class="text-right font-mono ${pnlClass}" placeholder="0.00" value="${trade.pnl}" onchange="updateTrade(${trade.id}, 'pnl', this.value)"></td>
-                    <td class="text-center">${trade.chart ? `<a href="${trade.chart}" target="_blank" class="text-blue-500 underline text-xs">View Chart</a>` : `<span class="text-gray-300 text-xs">No link</span>`}</td>
-                    <td class="text-center"><button id="btn-${trade.id}" onclick="toggleDetails(${trade.id})" class="btn-action btn-details">See Details</button></td>
+                    <td><select class="${resultClass}" onchange="updateTrade(${trade.id}, 'result', this.value); render()"><option value="Win" ${trade.result==='Win'?'selected':''}>Win</option><option value="Loss" ${trade.result==='Loss'?'selected':''}>Loss</option><option value="BE" ${trade.result==='BE'?'selected':''}>BE</option></select></td>
+                    <td><input type="number" step="any" class="text-right font-mono text-slate-500" placeholder="0" value="${trade.r_multiple}" onchange="updateTrade(${trade.id}, 'r_multiple', this.value)"></td>
+                    <td><input type="number" step="any" class="text-right font-mono text-slate-400" placeholder="0.00" value="${trade.commission || ''}" onchange="updateTrade(${trade.id}, 'commission', this.value); render()"></td>
+                    <td><input type="number" step="any" class="text-right font-mono ${pnlClass}" placeholder="0.00" value="${trade.pnl}" onchange="updateTrade(${trade.id}, 'pnl', this.value); render()"></td>
+                    <td class="text-center">${trade.chart ? `<a href="${trade.chart}" target="_blank" class="text-indigo-500 font-bold text-[10px] uppercase">Link</a>` : `<span class="text-slate-200 text-[10px]">None</span>`}</td>
+                    <td class="text-center"><button id="btn-${trade.id}" onclick="toggleDetails(${trade.id})" class="btn-action btn-details">Details</button></td>
                 `;
-
-                const detailRow = document.createElement('tr');
-                detailRow.id = `details-${trade.id}`;
-                detailRow.className = 'details-row';
-                detailRow.innerHTML = `
+                row.className = "group";
+                
+                const detail = document.createElement('tr');
+                detail.id = `details-${trade.id}`;
+                detail.className = 'details-row';
+                detail.innerHTML = `
                     <td colspan="10">
                         <div class="details-grid">
-                            <div class="detail-item"><label>Setup Name</label><input type="text" value="${trade.setup}" onchange="updateTrade(${trade.id}, 'setup', this.value)"></div>
-                            <div class="detail-item"><label>Chart URL</label><input type="text" value="${trade.chart}" placeholder="Link" onchange="updateTrade(${trade.id}, 'chart', this.value); render()"></div>
-                            <div class="detail-item"><label>Entry Price</label><input type="number" step="any" value="${trade.entry}" onchange="updateTrade(${trade.id}, 'entry', this.value)"></div>
-                            <div class="detail-item"><label>Stop Loss</label><input type="number" step="any" value="${trade.sl}" onchange="updateTrade(${trade.id}, 'sl', this.value)"></div>
-                            <div class="detail-item"><label>Take Profit</label><input type="number" step="any" value="${trade.tp}" onchange="updateTrade(${trade.id}, 'tp', this.value)"></div>
-                            <div class="detail-item"><label>Position Size</label><input type="number" step="any" value="${trade.size}" placeholder="Risk" onchange="updateTrade(${trade.id}, 'size', this.value)"></div>
+                            <div class="detail-item"><label>Trading Strategy</label><input type="text" value="${trade.setup}" onchange="updateTrade(${trade.id}, 'setup', this.value)"></div>
+                            <div class="detail-item"><label>Chart Evidence</label><input type="text" value="${trade.chart}" placeholder="TradingView URL" onchange="updateTrade(${trade.id}, 'chart', this.value); render()"></div>
+                            <div class="detail-item"><label>Entry Target</label><input type="number" step="any" value="${trade.entry}" onchange="updateTrade(${trade.id}, 'entry', this.value)"></div>
+                            <div class="detail-item"><label>Invalidation (SL)</label><input type="number" step="any" value="${trade.sl}" onchange="updateTrade(${trade.id}, 'sl', this.value)"></div>
+                            <div class="detail-item"><label>Objective (TP)</label><input type="number" step="any" value="${trade.tp}" onchange="updateTrade(${trade.id}, 'tp', this.value)"></div>
+                            <div class="detail-item"><label>Risk Amount</label><input type="number" step="any" value="${trade.size}" placeholder="$0.00" onchange="updateTrade(${trade.id}, 'size', this.value)"></div>
                             <div class="detail-item"><label>Exit Price</label><input type="number" step="any" value="${trade.exit}" onchange="updateTrade(${trade.id}, 'exit', this.value)"></div>
-                            <div class="detail-item"><label>Broker Fee</label><input type="number" step="any" value="${trade.commission || ''}" placeholder="0.00" onchange="updateTrade(${trade.id}, 'commission', this.value); render()"></div>
                         </div>
                     </td>
                 `;
-                tbody.appendChild(mainRow);
-                tbody.appendChild(detailRow);
+                tbody.appendChild(row);
+                tbody.appendChild(detail);
             });
             calculateTotalBalance();
         }
