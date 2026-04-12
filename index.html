@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Trading Journal - File Sync</title>
+    <title>Trading Journal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -227,7 +227,6 @@
                 </div>
             </div>
             <div class="flex flex-wrap gap-2 w-full md:w-auto">
-                <!-- Separated Action Buttons -->
                 <button onclick="createNewFile()" class="flex-1 md:flex-none bg-white border border-gray-200 text-gray-700 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-50 transition shadow-sm">
                     ✨ New File
                 </button>
@@ -269,17 +268,20 @@
     </div>
 
     <script>
-        let trades = JSON.parse(localStorage.getItem('trading_journal_data')) || [
+        const STORAGE_KEY = 'trading_journal_data';
+        const CAPITAL_KEY = 'trading_journal_capital';
+
+        let trades = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [
             { id: Date.now(), date: new Date().toISOString().split('T')[0], asset: '', type: 'Long', setup: '', chart: '', entry: '', sl: '', tp: '', size: '', exit: '', result: 'BE', r_multiple: '', pnl: '' }
         ];
-        let initialCapital = parseFloat(localStorage.getItem('trading_journal_capital')) || 0;
+        let initialCapital = parseFloat(localStorage.getItem(CAPITAL_KEY)) || 0;
         let tradeIdPendingDelete = null;
         let fileHandle = null;
 
-        // Initialize state
         async function save() {
-            localStorage.setItem('trading_journal_data', JSON.stringify(trades));
-            localStorage.setItem('trading_journal_capital', initialCapital);
+            // Only save to local cache if we haven't synced out
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(trades));
+            localStorage.setItem(CAPITAL_KEY, initialCapital);
             
             if (fileHandle) {
                 await writeToLocalFile();
@@ -333,9 +335,22 @@
         }
 
         function syncOut() {
+            // 1. Disconnect file
             fileHandle = null;
+            
+            // 2. Wipe browser memory
+            localStorage.removeItem(STORAGE_KEY);
+            localStorage.removeItem(CAPITAL_KEY);
+            
+            // 3. Reset internal state to empty
+            trades = [{ id: Date.now(), date: new Date().toISOString().split('T')[0], asset: '', type: 'Long', setup: '', chart: '', entry: '', sl: '', tp: '', size: '', exit: '', result: 'BE', r_multiple: '', pnl: '' }];
+            initialCapital = 0;
+            
+            // 4. Update UI
             updateSyncUI(false);
-            alert("Disconnected from local file. Changes will only be saved in the browser cache.");
+            render();
+            
+            alert("Sync Out Complete: Data has been removed from browser memory. Please open your file again next time to resume.");
         }
 
         async function writeToLocalFile() {
