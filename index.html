@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Trading Journal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f9fafb;
+            color: #111827;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .table-wrap {
+            height: calc(100vh - 200px);
+            overflow: auto;
+            position: relative;
+            background: white;
+        }
+
+        table {
+            border-collapse: separate;
+            border-spacing: 0;
+            width: 100%;
+            min-width: 800px;
+        }
+
+        @media (max-width: 640px) {
+            .table-wrap {
+                height: calc(100vh - 240px);
+            }
+        }
+
+        thead th {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            background-color: #f3f4f6;
+            border-bottom: 2px solid #e5e7eb;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.65rem;
+            letter-spacing: 0.05em;
+            padding: 12px 8px;
+            white-space: nowrap;
+        }
+
+        td {
+            border-bottom: 1px solid #f3f4f6;
+            padding: 4px 8px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 8px 6px;
+            border: 1px solid transparent;
+            background: transparent;
+            outline: none;
+            font-size: 0.875rem;
+            appearance: none;
+        }
+
+        input:focus, select:focus {
+            background: #ffffff;
+            border-color: #3b82f6;
+            border-radius: 4px;
+        }
+
+        .details-row {
+            background-color: #f8fafc;
+            display: none;
+        }
+
+        .details-row.active {
+            display: table-row;
+        }
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+            padding: 1.5rem;
+            background: #ffffff;
+            margin: 0.5rem;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .detail-item label {
+            display: block;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #64748b;
+            margin-bottom: 4px;
+        }
+
+        .detail-item input {
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            background: #fdfdfd;
+        }
+
+        .win-text { color: #059669; }
+        .loss-text { color: #dc2626; }
+        .be-text { color: #6b7280; }
+        
+        .btn-action {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-details {
+            background-color: #eff6ff;
+            color: #2563eb;
+        }
+        
+        .btn-details:hover {
+            background-color: #dbeafe;
+        }
+
+        .delete-btn {
+            color: #9ca3af;
+            transition: all 0.2s;
+            cursor: pointer;
+            font-size: 1.2rem;
+            line-height: 1;
+            padding: 4px;
+        }
+        .delete-btn:hover {
+            color: #ef4444;
+        }
+
+        .capital-input {
+            border-bottom: 1px dashed #d1d5db;
+            font-weight: 700;
+            width: 110px;
+            text-align: right;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            backdrop-filter: blur(2px);
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            animation: modalIn 0.2s ease-out;
+        }
+
+        @keyframes modalIn {
+            from { transform: scale(0.95); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .verify-input {
+            width: 100%;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            padding: 10px;
+            margin-top: 10px;
+            text-align: center;
+            font-weight: bold;
+            background: #f9fafb;
+        }
+        .verify-input:focus {
+            background: white;
+            border-color: #ef4444;
+        }
+    </style>
+</head>
+<body class="p-3 md:p-8">
+    <!-- Modal Layer -->
+    <div id="modalContainer"></div>
+
+    <div class="max-w-[1200px] mx-auto">
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-6">
+            <div>
+                <h1 class="text-xl font-bold tracking-tight">Trading Journal</h1>
+                <div class="flex items-center gap-4 mt-2">
+                    <div class="text-sm text-gray-500">
+                        Initial: <input type="number" id="initialCapital" class="capital-input" placeholder="0.00" onchange="updateCapital(this.value)">
+                    </div>
+                    <div class="text-sm border-l pl-4 border-gray-200">
+                        Balance: <span id="currentBalance" class="font-bold">0.00</span>
+                    </div>
+                </div>
+            </div>
+            <div class="flex gap-2 w-full md:w-auto">
+                <button onclick="addRow()" class="flex-1 md:flex-none bg-black text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-800 transition shadow-sm">+ Trade</button>
+                <button onclick="showModal('clearAll')" class="flex-1 md:flex-none text-gray-500 border border-gray-200 px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-white transition">Clear All</button>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="table-wrap">
+                <table id="journalTable">
+                    <thead>
+                        <tr>
+                            <th class="w-16 text-center"></th>
+                            <th class="text-left w-32">Date</th>
+                            <th class="text-left w-28">Asset</th>
+                            <th class="text-left w-24">Type</th>
+                            <th class="text-left w-24">Result</th>
+                            <th class="text-right w-28 bg-amber-50">R Mult.</th>
+                            <th class="text-right w-28 bg-amber-50">P/L</th>
+                            <th class="text-center w-32">Charts</th>
+                            <th class="text-center w-40">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let trades = JSON.parse(localStorage.getItem('trading_journal_data')) || [
+            { id: Date.now(), date: new Date().toISOString().split('T')[0], asset: '', type: 'Long', setup: '', chart: '', entry: '', sl: '', tp: '', size: '', exit: '', result: 'BE', r_multiple: '', pnl: '' }
+        ];
+        let initialCapital = parseFloat(localStorage.getItem('trading_journal_capital')) || 0;
+        let tradeIdPendingDelete = null;
+
+        function save() {
+            localStorage.setItem('trading_journal_data', JSON.stringify(trades));
+            localStorage.setItem('trading_journal_capital', initialCapital);
+        }
+
+        function updateCapital(val) {
+            initialCapital = parseFloat(val) || 0;
+            calculateTotalBalance();
+            save();
+        }
+
+        function updateTrade(id, field, value) {
+            const trade = trades.find(t => t.id === id);
+            if (trade) {
+                trade[field] = value;
+                if (field === 'pnl' || field === 'result') {
+                    calculateTotalBalance();
+                    const pnlInput = document.getElementById(`pnl-${id}`);
+                    if(pnlInput) {
+                        const val = parseFloat(value);
+                        pnlInput.className = `font-mono text-right ${val > 0 ? 'text-green-600 font-bold' : (val < 0 ? 'text-red-600 font-bold' : 'text-gray-400')}`;
+                    }
+                }
+                save();
+            }
+        }
+
+        function toggleDetails(id) {
+            const el = document.getElementById(`details-${id}`);
+            const btn = document.getElementById(`btn-${id}`);
+            const isActive = el.classList.toggle('active');
+            btn.innerText = isActive ? 'Close Details' : 'See Details';
+        }
+
+        function addRow() {
+            const newTrade = { id: Date.now(), date: new Date().toISOString().split('T')[0], asset: '', type: 'Long', setup: '', chart: '', entry: '', sl: '', tp: '', size: '', exit: '', result: 'BE', r_multiple: '', pnl: '' };
+            trades.unshift(newTrade);
+            render();
+            save();
+        }
+
+        function showModal(type, id = null) {
+            const container = document.getElementById('modalContainer');
+            tradeIdPendingDelete = id;
+
+            let title = "Confirm Delete";
+            let message = "Are you sure you want to delete this trade?";
+            let confirmAction = "confirmDelete()";
+            let verificationHtml = "";
+            
+            if (type === 'clearAll') {
+                const currentBal = document.getElementById('currentBalance').innerText;
+                title = "Security Verification";
+                message = `To clear all trades, please enter your current account balance <strong>(${currentBal})</strong> to confirm.`;
+                confirmAction = `validateAndClearAll('${currentBal}')`;
+                verificationHtml = `
+                    <input type="text" id="clearVerifyInput" class="verify-input" placeholder="Enter balance to confirm">
+                    <p id="verifyError" class="text-red-500 text-[10px] mt-1 hidden text-center">Balance does not match.</p>
+                `;
+            }
+
+            container.innerHTML = `
+                <div class="modal-overlay">
+                    <div class="modal-content">
+                        <h2 class="text-lg font-bold mb-2">${title}</h2>
+                        <p class="text-gray-500 text-sm mb-4">${message}</p>
+                        ${verificationHtml}
+                        <div class="flex gap-3 mt-6">
+                            <button onclick="closeModal()" class="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition">No, Cancel</button>
+                            <button onclick="${confirmAction}" class="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition">Confirm Action</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function closeModal() {
+            document.getElementById('modalContainer').innerHTML = '';
+            tradeIdPendingDelete = null;
+        }
+
+        function confirmDelete() {
+            if (tradeIdPendingDelete) {
+                trades = trades.filter(t => t.id !== tradeIdPendingDelete);
+                if (trades.length === 0) addRow();
+                else render();
+                save();
+            }
+            closeModal();
+        }
+
+        function validateAndClearAll(requiredValue) {
+            const input = document.getElementById('clearVerifyInput').value;
+            // Strip commas for comparison if user types without them
+            const sanitizedInput = input.replace(/,/g, '');
+            const sanitizedRequired = requiredValue.replace(/,/g, '');
+
+            if (sanitizedInput === sanitizedRequired) {
+                confirmClearAll();
+            } else {
+                const error = document.getElementById('verifyError');
+                error.classList.remove('hidden');
+                document.getElementById('clearVerifyInput').classList.add('border-red-500');
+            }
+        }
+
+        function confirmClearAll() {
+            trades = [];
+            addRow();
+            save();
+            closeModal();
+        }
+
+        function calculateTotalBalance() {
+            let totalPL = 0;
+            trades.forEach(t => { if(!isNaN(parseFloat(t.pnl))) totalPL += parseFloat(t.pnl); });
+            const currentBalance = initialCapital + totalPL;
+            const display = document.getElementById('currentBalance');
+            display.innerText = currentBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            display.className = `font-bold ${currentBalance >= initialCapital ? 'text-green-600' : 'text-red-600'}`;
+        }
+
+        function render() {
+            const tbody = document.getElementById('tableBody');
+            document.getElementById('initialCapital').value = initialCapital || '';
+            tbody.innerHTML = '';
+
+            trades.forEach(trade => {
+                const pnlVal = parseFloat(trade.pnl);
+                const pnlClass = pnlVal > 0 ? 'text-green-600 font-bold' : (pnlVal < 0 ? 'text-red-600 font-bold' : 'text-gray-400');
+                const resultClass = trade.result === 'Win' ? 'win-text' : (trade.result === 'Loss' ? 'loss-text' : 'be-text');
+
+                const mainRow = document.createElement('tr');
+                mainRow.innerHTML = `
+                    <td class="text-center">
+                        <button onclick="showModal('deleteSingle', ${trade.id})" class="delete-btn" title="Delete Trade">×</button>
+                    </td>
+                    <td><input type="date" value="${trade.date}" onchange="updateTrade(${trade.id}, 'date', this.value)"></td>
+                    <td><input type="text" placeholder="Asset" value="${trade.asset}" onchange="updateTrade(${trade.id}, 'asset', this.value)"></td>
+                    <td>
+                        <select onchange="updateTrade(${trade.id}, 'type', this.value)">
+                            <option value="Long" ${trade.type==='Long'?'selected':''}>Long</option>
+                            <option value="Short" ${trade.type==='Short'?'selected':''}>Short</option>
+                        </select>
+                    </td>
+                    <td>
+                        <select class="${resultClass} font-bold" onchange="updateTrade(${trade.id}, 'result', this.value); this.className=this.value==='Win'?'win-text font-bold':(this.value==='Loss'?'loss-text font-bold':'be-text font-bold')">
+                            <option value="Win" ${trade.result==='Win'?'selected':''}>Win</option>
+                            <option value="Loss" ${trade.result==='Loss'?'selected':''}>Loss</option>
+                            <option value="BE" ${trade.result==='BE'?'selected':''}>BE</option>
+                        </select>
+                    </td>
+                    <td class="bg-amber-50"><input type="number" step="any" class="text-right font-mono" placeholder="R" value="${trade.r_multiple}" onchange="updateTrade(${trade.id}, 'r_multiple', this.value)"></td>
+                    <td class="bg-amber-50"><input id="pnl-${trade.id}" type="number" step="any" class="text-right font-mono ${pnlClass}" placeholder="0.00" value="${trade.pnl}" onchange="updateTrade(${trade.id}, 'pnl', this.value)"></td>
+                    <td class="text-center">
+                        ${trade.chart ? `<a href="${trade.chart}" target="_blank" class="text-blue-500 underline text-xs">View Chart</a>` : `<span class="text-gray-300 text-xs">No link</span>`}
+                    </td>
+                    <td class="text-center">
+                        <button id="btn-${trade.id}" onclick="toggleDetails(${trade.id})" class="btn-action btn-details">See Details</button>
+                    </td>
+                `;
+
+                const detailRow = document.createElement('tr');
+                detailRow.id = `details-${trade.id}`;
+                detailRow.className = 'details-row';
+                detailRow.innerHTML = `
+                    <td colspan="9">
+                        <div class="details-grid">
+                            <div class="detail-item"><label>Setup Name</label><input type="text" value="${trade.setup}" onchange="updateTrade(${trade.id}, 'setup', this.value)"></div>
+                            <div class="detail-item"><label>Chart URL</label><input type="text" value="${trade.chart}" placeholder="TradingView Link" onchange="updateTrade(${trade.id}, 'chart', this.value); render()"></div>
+                            <div class="detail-item"><label>Entry Price</label><input type="number" step="any" value="${trade.entry}" onchange="updateTrade(${trade.id}, 'entry', this.value)"></div>
+                            <div class="detail-item"><label>Stop Loss</label><input type="number" step="any" value="${trade.sl}" onchange="updateTrade(${trade.id}, 'sl', this.value)"></div>
+                            <div class="detail-item"><label>Take Profit</label><input type="number" step="any" value="${trade.tp}" onchange="updateTrade(${trade.id}, 'tp', this.value)"></div>
+                            <div class="detail-item"><label>Position Size</label><input type="number" step="any" value="${trade.size}" placeholder="Risk Amt" onchange="updateTrade(${trade.id}, 'size', this.value)"></div>
+                            <div class="detail-item"><label>Exit Price</label><input type="number" step="any" value="${trade.exit}" onchange="updateTrade(${trade.id}, 'exit', this.value)"></div>
+                        </div>
+                    </td>
+                `;
+
+                tbody.appendChild(mainRow);
+                tbody.appendChild(detailRow);
+            });
+            calculateTotalBalance();
+        }
+
+        window.onload = render;
+    </script>
+</body>
+</html>
