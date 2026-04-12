@@ -15,13 +15,29 @@
             background-color: #f8fafc;
             color: #0f172a;
             -webkit-tap-highlight-color: transparent;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
+        }
+
+        /* Custom Scrollbar Styles */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
         }
 
         .table-wrap {
-            height: calc(100vh - 340px);
+            height: calc(100vh - 250px);
             overflow: auto;
             position: relative;
             background: white;
@@ -129,12 +145,25 @@
             background-color: #e2e8f0;
         }
 
+        .delete-btn {
+            color: #cbd5e1;
+            transition: all 0.2s;
+            cursor: pointer;
+            padding: 4px;
+        }
+        .delete-btn:hover {
+            color: #ef4444;
+        }
+
         .capital-input {
             border-bottom: 2px solid #e2e8f0;
             font-weight: 800;
             width: 120px;
             text-align: left;
             color: #0f172a;
+        }
+        .capital-input:focus {
+            border-color: #4f46e5;
         }
 
         .stat-card {
@@ -143,6 +172,9 @@
             border-radius: 16px;
             border: 1px solid #e2e8f0;
             min-width: 125px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
         }
 
@@ -152,12 +184,23 @@
             color: #94a3b8;
             text-transform: uppercase;
             letter-spacing: 0.05em;
+            margin-bottom: 2px;
         }
 
         .stat-value {
             font-size: 1.25rem;
             font-weight: 900;
             color: #1e293b;
+            line-height: 1.1;
+        }
+
+        .win-rate-bar {
+            height: 5px;
+            width: 100%;
+            background: #f1f5f9;
+            border-radius: 10px;
+            margin-top: 8px;
+            overflow: hidden;
         }
 
         .win-rate-fill {
@@ -176,19 +219,12 @@
             justify-content: center;
             box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);
         }
-
-        footer {
-            margin-top: auto;
-            padding: 2rem 1rem;
-            border-top: 1px solid #e2e8f0;
-            text-align: center;
-        }
     </style>
 </head>
 <body class="p-4 md:p-8">
     <div id="modalContainer"></div>
 
-    <div class="max-w-[1440px] mx-auto flex-grow">
+    <div class="max-w-[1440px] mx-auto">
         <!-- Premium Header -->
         <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-10">
             <div class="flex items-center gap-4">
@@ -221,22 +257,20 @@
             <div class="grid grid-cols-2 sm:flex items-stretch gap-4 w-full lg:w-auto">
                 <div class="stat-card">
                     <span class="stat-label">Volume</span>
-                    <span id="statTotal" class="block stat-value">0</span>
+                    <span id="statTotal" class="stat-value">0</span>
                 </div>
                 <div class="stat-card">
                     <span class="stat-label">Ratio W:L</span>
-                    <span id="statWinLoss" class="block stat-value text-slate-500">0:0</span>
+                    <span id="statWinLoss" class="stat-value text-slate-500">0:0</span>
                 </div>
                 <div class="stat-card">
                     <span class="stat-label">Accuracy</span>
-                    <span id="statWinRate" class="block stat-value text-indigo-600">0%</span>
-                    <div class="h-1 w-full bg-slate-100 rounded-full mt-2 overflow-hidden">
-                        <div id="winRateFill" class="win-rate-fill"></div>
-                    </div>
+                    <span id="statWinRate" class="stat-value text-indigo-600">0%</span>
+                    <div class="win-rate-bar"><div id="winRateFill" class="win-rate-fill"></div></div>
                 </div>
                 <div class="stat-card">
                     <span class="stat-label">Tenure</span>
-                    <span id="statDuration" class="block stat-value">0 <span class="text-[10px] font-medium text-slate-400">days</span></span>
+                    <span id="statDuration" class="stat-value">0 <span class="text-[10px] font-medium text-slate-400">days</span></span>
                 </div>
             </div>
 
@@ -245,6 +279,7 @@
                 <div class="flex bg-white rounded-xl p-1 border border-slate-200 shadow-sm overflow-hidden">
                     <button onclick="createNewFile()" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 transition">Save File</button>
                     <button onclick="openExistingFile()" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 border-l border-slate-100 transition">Import</button>
+                    <button id="btnSyncOut" onclick="syncOut()" class="hidden px-4 py-2 text-xs font-bold text-red-500 hover:bg-red-50 border-l border-slate-100 transition">Reset</button>
                 </div>
                 <button onclick="addRow()" class="flex-1 lg:flex-none bg-slate-900 text-white px-6 py-3 rounded-xl text-sm font-black hover:bg-black transition shadow-lg shadow-slate-200">
                     + Log Trade
@@ -279,23 +314,9 @@
         </div>
     </div>
 
-    <!-- Professional Footer -->
-    <footer>
-        <div class="max-w-[1440px] mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-            <p class="text-slate-400 text-xs font-medium">
-                &copy; 2026 Trade Terminal. All rights reserved. Professional Grade Analytics.
-            </p>
-            <div class="flex items-center gap-6">
-                <button onclick="showModal('disclaimer')" class="text-slate-500 hover:text-indigo-600 text-xs font-bold transition">Disclaimer</button>
-                <button onclick="showModal('terms')" class="text-slate-500 hover:text-indigo-600 text-xs font-bold transition">Terms of Use</button>
-                <button onclick="showModal('privacy')" class="text-slate-500 hover:text-indigo-600 text-xs font-bold transition">Privacy Policy</button>
-            </div>
-        </div>
-    </footer>
-
     <script>
-        const STORAGE_KEY = 'trade_terminal_v4_data';
-        const CAPITAL_KEY = 'trade_terminal_v4_cap';
+        const STORAGE_KEY = 'trade_terminal_v3_data';
+        const CAPITAL_KEY = 'trade_terminal_v3_cap';
 
         let trades = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [
             { id: Date.now(), date: new Date().toISOString().split('T')[0], asset: '', type: 'Long', setup: '', chart: '', entry: '', sl: '', tp: '', size: '', exit: '', result: 'BE', r_multiple: '', pnl: '', commission: '' }
@@ -313,11 +334,12 @@
         async function createNewFile() {
             try {
                 const handle = await window.showSaveFilePicker({
-                    suggestedName: `terminal-logs-2026.json`,
+                    suggestedName: `terminal-logs-${new Date().toISOString().split('T')[0]}.json`,
                     types: [{ description: 'Journal File', accept: { 'application/json': ['.json'] } }],
                 });
                 fileHandle = handle;
-                render(); await writeToLocalFile();
+                updateSyncStatusUI(true);
+                await writeToLocalFile();
             } catch (err) {}
         }
 
@@ -331,16 +353,38 @@
                     trades = data.trades;
                     initialCapital = data.initialCapital || 0;
                     fileHandle = handle;
-                    render(); save();
+                    updateSyncStatusUI(true);
+                    render();
+                    save();
                 }
             } catch (err) {}
         }
 
+        function syncOut() {
+            fileHandle = null;
+            localStorage.removeItem(STORAGE_KEY);
+            localStorage.removeItem(CAPITAL_KEY);
+            trades = [{ id: Date.now(), date: new Date().toISOString().split('T')[0], asset: '', type: 'Long', setup: '', chart: '', entry: '', sl: '', tp: '', size: '', exit: '', result: 'BE', r_multiple: '', pnl: '', commission: '' }];
+            initialCapital = 0;
+            updateSyncStatusUI(false);
+            render();
+        }
+
         async function writeToLocalFile() {
             if (!fileHandle) return;
-            const writable = await fileHandle.createWritable();
-            await writable.write(JSON.stringify({ trades, initialCapital, lastUpdated: new Date().toISOString() }, null, 2));
-            await writable.close();
+            try {
+                const writable = await fileHandle.createWritable();
+                await writable.write(JSON.stringify({ trades, initialCapital, lastUpdated: new Date().toISOString() }, null, 2));
+                await writable.close();
+            } catch (err) { fileHandle = null; updateSyncStatusUI(false); }
+        }
+
+        function updateSyncStatusUI(active) {
+            const status = document.getElementById('syncStatus');
+            const syncBtn = document.getElementById('btnSyncOut');
+            status.innerText = active ? "Live Sync" : "Sync Off";
+            status.className = active ? "px-2 py-0.5 rounded bg-indigo-100 text-indigo-700 text-[9px] font-black uppercase tracking-widest" : "px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[9px] font-black uppercase tracking-widest";
+            active ? syncBtn.classList.remove('hidden') : syncBtn.classList.add('hidden');
         }
 
         function updateCapital(val) {
@@ -375,37 +419,26 @@
 
         function showModal(type, id = null) {
             const container = document.getElementById('modalContainer');
-            let content = { title: "", body: "", action: "closeModal()", btnText: "Close", color: "bg-slate-900" };
-
-            switch(type) {
-                case 'deleteSingle':
-                    tradeIdPendingDelete = id;
-                    content = { title: "Delete Entry", body: "This will permanently remove this trade from your local database.", action: "confirmDelete()", btnText: "Delete", color: "bg-red-500" };
-                    break;
-                case 'clearAll':
-                    const bal = document.getElementById('currentBalance').innerText;
-                    content = { title: "Wipe Data", body: `Please type <strong>${bal}</strong> to confirm full deletion.`, action: `validateWipe('${bal}')`, btnText: "Confirm Wipe", color: "bg-red-600", input: true };
-                    break;
-                case 'disclaimer':
-                    content = { title: "Financial Disclaimer", body: "Trading involves significant risk. The analytics provided by this tool are for educational purposes only. Past performance is not indicative of future results. We are not financial advisors.", action: "closeModal()", btnText: "Understood", color: "bg-indigo-600" };
-                    break;
-                case 'terms':
-                    content = { title: "Terms of Use", body: "By using Trade Terminal, you agree that data is stored locally on your device. We are not responsible for any data loss or financial losses incurred through the use of this software.", action: "closeModal()", btnText: "Accept", color: "bg-indigo-600" };
-                    break;
-                case 'privacy':
-                    content = { title: "Privacy Policy", body: "Your privacy is paramount. This application operates entirely on client-side storage. No trade data, personal information, or financial details are ever transmitted to or stored on our servers.", action: "closeModal()", btnText: "Close", color: "bg-indigo-600" };
-                    break;
+            tradeIdPendingDelete = id;
+            let title = "Delete Record", message = "Are you sure you want to remove this trade?", confirmAction = "confirmDelete()", extra = "";
+            
+            if (type === 'clearAll') {
+                const bal = document.getElementById('currentBalance').innerText;
+                title = "Wipe Database";
+                message = `Please enter <strong>${bal}</strong> to confirm full data deletion.`;
+                confirmAction = `validateWipe('${bal}')`;
+                extra = `<input type="text" id="wipeInput" class="w-full mt-4 p-3 border-2 border-slate-100 rounded-xl text-center font-black">`;
             }
 
             container.innerHTML = `
                 <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[100] p-4">
-                    <div class="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl animate-in fade-in zoom-in duration-200">
-                        <h2 class="text-xl font-black text-slate-900 mb-4">${content.title}</h2>
-                        <div class="text-slate-500 text-sm leading-relaxed mb-6">${content.body}</div>
-                        ${content.input ? `<input type="text" id="wipeInput" class="w-full mb-6 p-4 border-2 border-slate-100 rounded-xl text-center font-black">` : ''}
-                        <div class="flex gap-3">
+                    <div class="bg-white rounded-3xl p-8 w-full max-w-sm shadow-2xl animate-in fade-in zoom-in duration-200">
+                        <h2 class="text-xl font-black text-slate-900 mb-2">${title}</h2>
+                        <p class="text-slate-500 text-sm leading-relaxed">${message}</p>
+                        ${extra}
+                        <div class="flex gap-3 mt-8">
                             <button onclick="closeModal()" class="flex-1 py-3 text-sm font-bold text-slate-500 hover:bg-slate-50 rounded-2xl transition">Cancel</button>
-                            <button onclick="${content.action}" class="flex-1 py-3 text-sm font-black text-white ${content.color} rounded-2xl shadow-lg transition">${content.btnText}</button>
+                            <button onclick="${confirmAction}" class="flex-1 py-3 text-sm font-black bg-red-500 text-white hover:bg-red-600 rounded-2xl shadow-lg shadow-red-200 transition">Confirm</button>
                         </div>
                     </div>
                 </div>
@@ -465,7 +498,7 @@
                 row.className = "group transition-colors";
                 row.innerHTML = `
                     <td class="text-center">
-                        <button onclick="showModal('deleteSingle', ${trade.id})" class="text-slate-200 hover:text-red-500 opacity-0 group-hover:opacity-100 transition">
+                        <button onclick="showModal('deleteSingle', ${trade.id})" class="delete-btn opacity-0 group-hover:opacity-100 transition">
                             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                         </button>
                     </td>
