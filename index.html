@@ -10,12 +10,16 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
         
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
+
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: #f8fafc;
             color: #0f172a;
             -webkit-tap-highlight-color: transparent;
-            min-height: 100vh;
             display: flex;
             flex-direction: column;
         }
@@ -39,8 +43,17 @@
             background: #94a3b8;
         }
 
+        .main-container {
+            flex: 1 0 auto;
+            width: 100%;
+            max-width: 1440px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
         .table-wrap {
-            height: calc(100vh - 320px);
+            height: calc(100vh - 360px);
+            min-height: 400px;
             overflow: auto;
             position: relative;
             background: white;
@@ -224,11 +237,13 @@
         }
 
         footer {
-            margin-top: auto;
-            padding: 2rem 0;
+            flex-shrink: 0;
+            background: #f1f5f9;
+            padding: 1.5rem 0;
             text-align: center;
             font-size: 0.75rem;
-            color: #94a3b8;
+            color: #64748b;
+            border-top: 1px solid #e2e8f0;
         }
 
         .legal-link {
@@ -244,10 +259,10 @@
         }
     </style>
 </head>
-<body class="p-4 md:p-8">
+<body>
     <div id="modalContainer"></div>
 
-    <div class="max-w-[1440px] mx-auto w-full">
+    <div class="main-container">
         <!-- Premium Header -->
         <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-10">
             <div class="flex items-center gap-4">
@@ -302,7 +317,7 @@
                 <div class="flex bg-white rounded-xl p-1 border border-slate-200 shadow-sm overflow-hidden">
                     <button onclick="createNewFile()" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 transition">Save File</button>
                     <button onclick="openExistingFile()" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 border-l border-slate-100 transition">Import</button>
-                    <button id="btnSyncOut" onclick="syncOut()" class="hidden px-4 py-2 text-xs font-bold text-red-500 hover:bg-red-50 border-l border-slate-100 transition">Disconneect</button>
+                    <button id="btnSyncOut" onclick="syncOut()" class="hidden px-4 py-2 text-xs font-bold text-red-500 hover:bg-red-50 border-l border-slate-100 transition">Disconnect</button>
                 </div>
                 <button onclick="addRow()" class="flex-1 lg:flex-none bg-slate-900 text-white px-6 py-3 rounded-xl text-sm font-black hover:bg-black transition shadow-lg shadow-slate-200">
                     + Log Trade
@@ -335,16 +350,16 @@
                 </table>
             </div>
         </div>
-
-        <footer>
-            <p class="mb-2">&copy; <span id="year"></span> Swapneel Das. All rights reserved.</p>
-            <div class="flex justify-center flex-wrap">
-                <span class="legal-link" onclick="showModal('disclaimer')">Disclaimer</span>
-                <span class="legal-link" onclick="showModal('terms')">Terms of Use</span>
-                <span class="legal-link" onclick="showModal('privacy')">Privacy Policy</span>
-            </div>
-        </footer>
     </div>
+
+    <footer>
+        <p class="mb-2">&copy; <span id="year"></span> Swapneel Das. All rights reserved.</p>
+        <div class="flex justify-center flex-wrap">
+            <span class="legal-link" onclick="showModal('disclaimer')">Disclaimer</span>
+            <span class="legal-link" onclick="showModal('terms')">Terms of Use</span>
+            <span class="legal-link" onclick="showModal('privacy')">Privacy Policy</span>
+        </div>
+    </footer>
 
     <script>
         const STORAGE_KEY = 'trade_terminal_v3_data';
@@ -353,9 +368,8 @@
         // Set year in footer
         document.getElementById('year').textContent = new Date().getFullYear();
 
-        // Helper to get current device date in YYYY-MM-DD format
         function getCurrentDeviceDate() {
-            return new Date().toLocaleDateString('en-CA'); // en-CA gives YYYY-MM-DD reliably
+            return new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD
         }
 
         let trades = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [
@@ -532,12 +546,13 @@
         }
 
         function calculateTotalBalance() {
-            let net = 0, wins = 0, losses = 0, dates = [];
+            let net = 0, wins = 0, losses = 0, uniqueDates = new Set();
+            
             trades.forEach(t => { 
                 const p = parseFloat(t.pnl) || 0, c = parseFloat(t.commission) || 0;
                 net += (p - c); 
                 if (t.result === 'Win') wins++; else if (t.result === 'Loss') losses++;
-                if (t.date) dates.push(new Date(t.date));
+                if (t.date) uniqueDates.add(t.date);
             });
 
             const current = initialCapital + net;
@@ -547,16 +562,15 @@
 
             document.getElementById('statTotal').innerText = trades.length;
             document.getElementById('statWinLoss').innerText = `${wins}:${losses}`;
-            const rate = trades.length > 0 ? ((wins / trades.length) * 100).toFixed(0) : 0;
+            
+            const totalOutcomes = wins + losses;
+            const rate = totalOutcomes > 0 ? ((wins / totalOutcomes) * 100).toFixed(0) : 0;
             document.getElementById('statWinRate').innerText = `${rate}%`;
             document.getElementById('winRateFill').style.width = `${rate}%`;
 
-            if (dates.length > 1) {
-                const days = Math.ceil(Math.abs(new Date(Math.max(...dates)) - new Date(Math.min(...dates))) / (1000 * 60 * 60 * 24));
-                document.getElementById('statDuration').innerHTML = `${days} <span class="text-[10px] font-medium text-slate-400">days</span>`;
-            } else {
-                document.getElementById('statDuration').innerHTML = `0 <span class="text-[10px] font-medium text-slate-400">days</span>`;
-            }
+            // Inclusive Day Counting: If 12, 13, 14 exist, total unique days = 3.
+            const tradingDaysCount = uniqueDates.size;
+            document.getElementById('statDuration').innerHTML = `${tradingDaysCount} <span class="text-[10px] font-medium text-slate-400">days</span>`;
         }
 
         function render() {
@@ -577,7 +591,7 @@
                             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                         </button>
                     </td>
-                    <td><input type="date" value="${trade.date}" class="font-semibold text-slate-600" onchange="updateTrade(${trade.id}, 'date', this.value)"></td>
+                    <td><input type="date" value="${trade.date}" class="font-semibold text-slate-600" onchange="updateTrade(${trade.id}, 'date', this.value); calculateTotalBalance();"></td>
                     <td><input type="text" placeholder="BTCUSDT" value="${trade.asset}" class="font-black uppercase tracking-widest text-slate-800" onchange="updateTrade(${trade.id}, 'asset', this.value)"></td>
                     <td><select class="font-semibold" onchange="updateTrade(${trade.id}, 'type', this.value)"><option value="Long" ${trade.type==='Long'?'selected':''}>Long</option><option value="Short" ${trade.type==='Short'?'selected':''}>Short</option></select></td>
                     <td><select class="${resultClass}" onchange="updateTrade(${trade.id}, 'result', this.value); render()"><option value="Win" ${trade.result==='Win'?'selected':''}>Win</option><option value="Loss" ${trade.result==='Loss'?'selected':''}>Loss</option><option value="BE" ${trade.result==='BE'?'selected':''}>BE</option></select></td>
